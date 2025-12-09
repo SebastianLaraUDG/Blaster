@@ -203,6 +203,7 @@ void UMenu::OnJoinSession(EOnJoinSessionCompleteResult::Type Result)
 	}
 }
 
+	
 void UMenu::OnDestroySession(bool bWasSuccessful)
 {
 }

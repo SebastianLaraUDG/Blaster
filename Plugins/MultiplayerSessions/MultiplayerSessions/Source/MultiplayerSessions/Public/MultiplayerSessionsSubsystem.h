@@ -57,6 +57,8 @@ public:
 	void JoinSession(const FOnlineSessionSearchResult& SessionSearchResult);
 	void DestroySession();
 	void StartSession();
+	
+	bool IsValidSessionInterface();
 
 	virtual void Initialize(FSubsystemCollectionBase& Collection) override;
 	virtual void Deinitialize() override;
@@ -78,7 +80,7 @@ protected:
 	// These don't need to be called outside this class.
 	//
 	void OnCreateSessionComplete(FName SessionName, bool bWasSuccessful);
-	void OnFindSessionComplete(bool bWasSuccessful);
+	void OnFindSessionsComplete(bool bWasSuccessful);
 	void OnJoinSessionComplete(FName SessionName, EOnJoinSessionCompleteResult::Type Result);
 	void OnDestroySessionComplete(FName SessionName, bool bWasSuccessful);
 	void OnStartSessionComplete(FName SessionName, bool bWasSuccessful);

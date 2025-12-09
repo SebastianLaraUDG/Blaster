@@ -4,13 +4,14 @@
 #include "MultiplayerSessionsSubsystem.h"
 #include "OnlineSessionSettings.h"
 #include "OnlineSubsystem.h"
+#include "Online/OnlineSessionNames.h"
 
 UMultiplayerSessionsSubsystem::UMultiplayerSessionsSubsystem() :
 	// Bind Session related delegates
 	CreateSessionCompleteDelegate(
 		FOnCreateSessionCompleteDelegate::CreateUObject(this, &ThisClass::OnCreateSessionComplete)),
 	FindSessionsCompleteDelegate(
-		FOnFindSessionsCompleteDelegate::CreateUObject(this, &ThisClass::OnFindSessionComplete)),
+		FOnFindSessionsCompleteDelegate::CreateUObject(this, &ThisClass::OnFindSessionsComplete)),
 	JoinSessionCompleteDelegate(FOnJoinSessionCompleteDelegate::CreateUObject(this, &ThisClass::OnJoinSessionComplete)),
 	DestroySessionCompleteDelegate(
 		FOnDestroySessionCompleteDelegate::CreateUObject(this, &ThisClass::OnDestroySessionComplete)),
@@ -26,7 +27,7 @@ UMultiplayerSessionsSubsystem::UMultiplayerSessionsSubsystem() :
 
 void UMultiplayerSessionsSubsystem::CreateSession(int32 NumPublicConnections, FString MatchType)
 {
-	if (!SessionInterface.IsValid())
+	if (!IsValidSessionInterface())
 	{
 		return;
 	}
@@ -50,11 +51,12 @@ void UMultiplayerSessionsSubsystem::CreateSession(int32 NumPublicConnections, FS
 	// Is LAN if steam subsystem is used, otherwise false
 	LastSessionSettings->bIsLANMatch = IOnlineSubsystem::Get()->GetSubsystemName() == "NULL" ? true : false;
 	LastSessionSettings->NumPublicConnections = NumPublicConnections; // Number of connections for a particular session
+	LastSessionSettings->bAllowJoinInProgress = true;
 	LastSessionSettings->bAllowJoinViaPresence = true;
 	LastSessionSettings->bShouldAdvertise = true;
 	LastSessionSettings->bUsesPresence = true;
-	LastSessionSettings->Set(FName("MatchType"), MatchType, EOnlineDataAdvertisementType::ViaOnlineServiceAndPing);
 	LastSessionSettings->bUseLobbiesIfAvailable = true; // Recommendation from a student in the comments of class 22
+	LastSessionSettings->Set(FName("MatchType"), MatchType, EOnlineDataAdvertisementType::ViaOnlineServiceAndPing);
 	LastSessionSettings->BuildUniqueId = 1;
 
 	if (const UWorld* World = GetWorld())
@@ -74,18 +76,18 @@ void UMultiplayerSessionsSubsystem::CreateSession(int32 NumPublicConnections, FS
 
 void UMultiplayerSessionsSubsystem::FindSessions(int32 MaxSearchResults)
 {
-	if (!SessionInterface.IsValid())
+	if (!IsValidSessionInterface())
 	{
 		return;
 	}
-
+	
 	FindSessionsCompleteDelegateHandle = SessionInterface->AddOnFindSessionsCompleteDelegate_Handle(
 		FindSessionsCompleteDelegate);
 	LastSessionSearch = MakeShareable(new FOnlineSessionSearch());
 	LastSessionSearch->MaxSearchResults = MaxSearchResults;
 	LastSessionSearch->bIsLanQuery = IOnlineSubsystem::Get()->GetSubsystemName() == "NULL" ? true : false;
 	LastSessionSearch->QuerySettings.
-	                   Set(FName("SEARCH_LOBBIES")/*SEARCH_PRESENCE*//*FName("SEARCH_PRESENCE")*/, true,
+	                   Set(SEARCH_LOBBIES /*FName("SEARCH_LOBBIES")*//*SEARCH_PRESENCE*//*FName("SEARCH_PRESENCE")*/, true,
 	                       EOnlineComparisonOp::Equals);
 
 	if (const UWorld* World = GetWorld())
@@ -116,7 +118,7 @@ void UMultiplayerSessionsSubsystem::JoinSession(const FOnlineSessionSearchResult
 	if (const UWorld* World = GetWorld())
 	{
 		if (const ULocalPlayer* LocalPlayer = World->GetFirstLocalPlayerFromController())
-		{
+		{			
 			if (!SessionInterface->JoinSession(*LocalPlayer->GetPreferredUniqueNetId(), NAME_GameSession,
 			                                   SessionSearchResult))
 			{
@@ -150,6 +152,18 @@ void UMultiplayerSessionsSubsystem::StartSession()
 {
 }
 
+bool UMultiplayerSessionsSubsystem::IsValidSessionInterface()
+{
+	if (!SessionInterface.IsValid())
+	{
+		if (IOnlineSubsystem* Subsystem = IOnlineSubsystem::Get())
+		{
+			SessionInterface = Subsystem->GetSessionInterface();
+		}
+	}
+	return SessionInterface.IsValid();
+}
+
 void UMultiplayerSessionsSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 {
 	Super::Initialize(Collection);
@@ -167,21 +181,27 @@ void UMultiplayerSessionsSubsystem::OnCreateSessionComplete(FName SessionName, b
 		// Remove delegate since creation was successful
 		SessionInterface->ClearOnCreateSessionCompleteDelegate_Handle(CreateSessionCompleteDelegateHandle);
 	}
-	if (LastSessionSearch->SearchResults.Num() <= 0)
-	{
-		MultiplayerOnFindSessionsComplete.Broadcast(TArray<FOnlineSessionSearchResult>(), false);
-		return;
-	}
+		
 	// Broadcast session was created successfully
 	MultiplayerOnCreateSessionComplete.Broadcast(bWasSuccessful);
 }
 
-void UMultiplayerSessionsSubsystem::OnFindSessionComplete(bool bWasSuccessful)
+void UMultiplayerSessionsSubsystem::OnFindSessionsComplete(bool bWasSuccessful)
 {
 	if (SessionInterface)
 	{
 		SessionInterface->ClearOnFindSessionsCompleteDelegate_Handle(FindSessionsCompleteDelegateHandle);
 	}
+	
+	if (LastSessionSearch.IsValid())
+	{
+		if (LastSessionSearch->SearchResults.Num() <= 0)
+		{
+			MultiplayerOnFindSessionsComplete.Broadcast(TArray<FOnlineSessionSearchResult>(), false);
+			return;
+		}
+	}
+	
 	MultiplayerOnFindSessionsComplete.Broadcast(LastSessionSearch->SearchResults, bWasSuccessful);
 }
 
@@ -190,8 +210,9 @@ void UMultiplayerSessionsSubsystem::OnJoinSessionComplete(FName SessionName, EOn
 	if (SessionInterface)
 	{
 		SessionInterface->ClearOnJoinSessionCompleteDelegate_Handle(JoinSessionCompleteDelegateHandle);
-		MultiplayerOnJoinSessionComplete.Broadcast(Result);
+//		MultiplayerOnJoinSessionComplete.Broadcast(Result);
 	}
+	MultiplayerOnJoinSessionComplete.Broadcast(Result);
 }
 
 void UMultiplayerSessionsSubsystem::OnDestroySessionComplete(FName SessionName, bool bWasSuccessful)
