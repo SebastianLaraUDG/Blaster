@@ -6,6 +6,7 @@
 #include "GameFramework/SpringArmComponent.h"
 #include "EnhancedInputSubsystems.h"
 #include "EnhancedInputComponent.h"
+#include "GameFramework/CharacterMovementComponent.h"
 
 
 ABlasterCharacter::ABlasterCharacter()
@@ -22,6 +23,9 @@ ABlasterCharacter::ABlasterCharacter()
 	Camera = CreateDefaultSubobject<UCameraComponent>(TEXT("FollowCamera"));
 	Camera->SetupAttachment(SpringArmComponent, USpringArmComponent::SocketName);
 	Camera->bUsePawnControlRotation = false;
+	
+	bUseControllerRotationYaw = false;
+	GetCharacterMovement()->bOrientRotationToMovement = true;
 }
 
 void ABlasterCharacter::Tick(float DeltaTime)

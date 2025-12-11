@@ -1,0 +1,37 @@
+// Sebastian Lara. All rights reserved.
+
+#pragma once
+
+#include "CoreMinimal.h"
+#include "Animation/AnimInstance.h"
+#include "BlasterAnimInstance.generated.h"
+
+class ABlasterCharacter;
+
+/**
+ * 
+ */
+UCLASS
+
+()
+class BLASTER_API UBlasterAnimInstance : public UAnimInstance
+{
+	GENERATED_BODY()
+	
+public:
+	virtual void NativeInitializeAnimation() override;
+	virtual void NativeUpdateAnimation(const float DeltaSeconds) override;
+	
+private:
+	UPROPERTY(BlueprintReadOnly,Category = Character,meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<ABlasterCharacter> BlasterCharacter;
+	
+	UPROPERTY(BlueprintReadOnly,Category = Character,meta = (AllowPrivateAccess = "true"))
+	float Speed;
+	
+	UPROPERTY(BlueprintReadOnly,Category = Character,meta = (AllowPrivateAccess = "true"))
+	bool bIsInAir;
+	
+	UPROPERTY(BlueprintReadOnly,Category = Character,meta = (AllowPrivateAccess = "true"))
+	bool bIsAccelerating;
+};
