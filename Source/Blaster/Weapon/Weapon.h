@@ -6,6 +6,7 @@
 #include "GameFramework/Actor.h"
 #include "Weapon.generated.h"
 
+class UWidgetComponent;
 class USphereComponent;
 class USkeletalMeshComponent;
 
@@ -33,15 +34,24 @@ public:
 
 protected:
 	virtual void BeginPlay() override;
+	
+	UFUNCTION()
+	virtual void OnSphereBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool FromSweep, const FHitResult&  SweepResult);
 
 private:
 	/* Mesh */
 	UPROPERTY(VisibleAnywhere, Category = "Weapon Properties")
 	TObjectPtr<USkeletalMeshComponent> WeaponMesh;
 
+	/* Area Sphere */
 	UPROPERTY(VisibleAnywhere, Category = "Weapon Properties")
 	TObjectPtr<USphereComponent> AreaSphere;
 	
-	UPROPERTY(VisibleAnywhere)
+	/* Weapon State */
+	UPROPERTY(VisibleAnywhere, Category = "Weapon Properties")
 	EWeaponState WeaponState;
+	
+	/* Pickup widget */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Weapon Properties", meta = (AllowPrivateAccess = true))
+	TObjectPtr<UWidgetComponent> PickupWidget;
 };

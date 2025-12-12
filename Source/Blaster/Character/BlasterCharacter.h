@@ -43,7 +43,7 @@ private:
 	TObjectPtr<UCameraComponent> Camera;
 	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = HUD, meta = (AllowPrivateAccess = true))
-	UWidgetComponent* OverheadWidgetComp;
+	TObjectPtr<UWidgetComponent> OverheadWidgetComp;
 	
 public:	
 	/* Input Temporal aqui. No se si ponerlo en el controller.*/
