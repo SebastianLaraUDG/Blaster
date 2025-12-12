@@ -9,7 +9,7 @@
 class UTextBlock;
 
 /**
- * 
+ * A Widget which has functionality to display the network Local Role.
  */
 UCLASS()
 class BLASTER_API UOverheadWidget : public UUserWidget

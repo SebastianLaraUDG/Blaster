@@ -7,7 +7,7 @@
 #include "LobbyGameMode.generated.h"
 
 /**
- * 
+ * Game mode for a lobby level.
  */
 UCLASS()
 class BLASTER_API ALobbyGameMode : public AGameMode
@@ -15,7 +15,7 @@ class BLASTER_API ALobbyGameMode : public AGameMode
 	GENERATED_BODY()
 	
 public:
-	void PostLogin(APlayerController* NewPlayer) override;
+	virtual void PostLogin(APlayerController* NewPlayer) override;
 	
 protected:
 private:

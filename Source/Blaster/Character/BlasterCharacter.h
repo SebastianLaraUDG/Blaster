@@ -14,6 +14,9 @@ class UInputAction;
 
 struct FInputActionValue;
 
+/*
+ * 
+ */
 UCLASS()
 class BLASTER_API ABlasterCharacter : public ACharacter
 {

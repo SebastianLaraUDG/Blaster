@@ -9,11 +9,10 @@
 class ABlasterCharacter;
 
 /**
- * 
+ * Base class for animation blueprint specifically for
+ * Blaster Character.
  */
-UCLASS
-
-()
+UCLASS()
 class BLASTER_API UBlasterAnimInstance : public UAnimInstance
 {
 	GENERATED_BODY()
