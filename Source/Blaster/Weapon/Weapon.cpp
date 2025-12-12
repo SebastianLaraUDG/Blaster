@@ -49,6 +49,8 @@ void AWeapon::BeginPlay()
 		AreaSphere->SetCollisionResponseToChannel(ECC_Pawn,ECR_Overlap);
 		// Bind BeginOverlap.
 		AreaSphere->OnComponentBeginOverlap.AddDynamic(this,&ThisClass::OnSphereBeginOverlap);
+		// Bind EndOverlap.
+		AreaSphere->OnComponentEndOverlap.AddDynamic(this,&ThisClass::OnSphereEndOverlap);
 	}
 }
 
@@ -58,7 +60,17 @@ void AWeapon::OnSphereBeginOverlap(UPrimitiveComponent* OverlappedComponent, AAc
 	ABlasterCharacter* const BlasterCharacter = Cast<ABlasterCharacter>(OtherActor);
 	if (BlasterCharacter && PickupWidget)
 	{
-		PickupWidget->SetVisibility(true);
+		BlasterCharacter->SetOverlappingWeapon(this);
+		// PickupWidget->SetVisibility(true);
+	}
+}
+
+void AWeapon::OnSphereEndOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
+	UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
+{
+	if (ABlasterCharacter* const BlasterCharacter = Cast<ABlasterCharacter>(OtherActor))
+	{
+		BlasterCharacter->SetOverlappingWeapon(nullptr);
 	}
 }
 
@@ -67,5 +79,13 @@ void AWeapon::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
+}
+
+void AWeapon::ShowPickupWidget(bool bShowWidget)
+{
+	if (PickupWidget)
+	{
+		PickupWidget->SetVisibility(bShowWidget);
+	}
 }
 

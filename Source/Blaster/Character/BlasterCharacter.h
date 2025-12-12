@@ -11,6 +11,7 @@ class USpringArmComponent;
 class UCameraComponent;
 class UInputMappingContext;
 class UInputAction;
+class AWeapon;
 
 struct FInputActionValue;
 
@@ -26,6 +27,7 @@ public:
 	ABlasterCharacter();
 	virtual void Tick(float DeltaTime) override;
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
+	virtual void GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const override;
 	
 protected:
 	
@@ -36,14 +38,23 @@ protected:
 	void Turn(const FInputActionValue& Value);
 
 private:
+	/* Camera and spring arm*/
 	UPROPERTY(VisibleAnywhere,Category = Camera)
 	TObjectPtr<USpringArmComponent> SpringArmComponent;
 	
 	UPROPERTY(VisibleAnywhere, Category = Camera)
 	TObjectPtr<UCameraComponent> Camera;
 	
+	/* Overhead widget.*/
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = HUD, meta = (AllowPrivateAccess = true))
 	TObjectPtr<UWidgetComponent> OverheadWidgetComp;
+	
+	UPROPERTY(ReplicatedUsing = OnRep_OverlappingWeapon)
+	TObjectPtr<AWeapon> OverlappingWeapon; 
+	
+	// My fist rep notify!
+	UFUNCTION()
+	void OnRep_OverlappingWeapon(AWeapon* LastWeapon);
 	
 public:	
 	/* Input Temporal aqui. No se si ponerlo en el controller.*/
@@ -56,5 +67,7 @@ public:
 	
 	UPROPERTY(EditAnywhere, Category = Input)
 	TObjectPtr<UInputAction> TurnInputAction;
+	
+	void SetOverlappingWeapon(AWeapon* Weapon);
 	
 };
