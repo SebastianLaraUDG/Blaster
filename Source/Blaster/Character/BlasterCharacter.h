@@ -6,6 +6,7 @@
 #include "GameFramework/Character.h"
 #include "BlasterCharacter.generated.h"
 
+class UWidgetComponent;
 class USpringArmComponent;
 class UCameraComponent;
 class UInputMappingContext;
@@ -35,8 +36,11 @@ private:
 	UPROPERTY(VisibleAnywhere,Category = Camera)
 	TObjectPtr<USpringArmComponent> SpringArmComponent;
 	
-	UPROPERTY(visibleAnywhere, Category = Camera)
+	UPROPERTY(VisibleAnywhere, Category = Camera)
 	TObjectPtr<UCameraComponent> Camera;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = HUD, meta = (AllowPrivateAccess = true))
+	UWidgetComponent* OverheadWidgetComp;
 	
 public:	
 	/* Input Temporal aqui. No se si ponerlo en el controller.*/

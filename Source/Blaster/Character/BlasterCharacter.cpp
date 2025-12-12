@@ -6,6 +6,7 @@
 #include "GameFramework/SpringArmComponent.h"
 #include "EnhancedInputSubsystems.h"
 #include "EnhancedInputComponent.h"
+#include "Components/WidgetComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 
 
@@ -26,6 +27,10 @@ ABlasterCharacter::ABlasterCharacter()
 	
 	bUseControllerRotationYaw = false;
 	GetCharacterMovement()->bOrientRotationToMovement = true;
+	
+	// Overhead Widget.
+	OverheadWidgetComp = CreateDefaultSubobject<UWidgetComponent>(TEXT("OverheadWidget"));
+	OverheadWidgetComp->SetupAttachment(RootComponent);
 }
 
 void ABlasterCharacter::Tick(float DeltaTime)
