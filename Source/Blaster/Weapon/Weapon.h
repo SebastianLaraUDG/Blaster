@@ -13,11 +13,11 @@ class USkeletalMeshComponent;
 UENUM(BlueprintType)
 enum class EWeaponState : uint8
 {
-	EWS_Initial UMETA(DisplayName = "Initial State"),
-	EWS_Equipped UMETA(DisplayName = "Equipped"),
-	EWS_Dropped UMETA(DisplayName = "Dropped"),
+	EWS_Initial			UMETA(DisplayName = "Initial State"),
+	EWS_Equipped		UMETA(DisplayName = "Equipped"),
+	EWS_Dropped			UMETA(DisplayName = "Dropped"),
 	
-	EWS_MAX UMETA(DisplayName = "DefaultMax")	
+	EWS_MAX				UMETA(DisplayName = "DefaultMax")	
 };
 
 /*
@@ -32,6 +32,8 @@ public:
 	AWeapon();
 	virtual void Tick(float DeltaTime) override;
 	void ShowPickupWidget(bool bShowWidget);
+	
+	FORCEINLINE void SetWeaponState(EWeaponState NewState) { WeaponState = NewState; }
 
 protected:
 	virtual void BeginPlay() override;

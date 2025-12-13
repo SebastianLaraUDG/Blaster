@@ -1,0 +1,38 @@
+// Sebastian Lara. All rights reserved.
+
+#pragma once
+
+#include "CoreMinimal.h"
+#include "Components/ActorComponent.h"
+#include "CombatComponent.generated.h"
+
+class AWeapon;
+class ABlasterCharacter;
+
+/*
+ * Combat component. Responsible for all combat functionality.
+ */
+UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
+class BLASTER_API UCombatComponent : public UActorComponent
+{
+	GENERATED_BODY()
+
+public:	
+	friend class ABlasterCharacter;
+	UCombatComponent();
+	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
+	void EquipWeapon(AWeapon* WeaponToEquip);
+	
+protected:
+	virtual void BeginPlay() override;
+	
+private:
+	TObjectPtr<ABlasterCharacter> Character;
+	
+	// Hand Socket Name.
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly,meta =(AllowPrivateAccess = true))
+	FName HandSocketName = FName("RightHandSocket");
+	
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Combat, meta = (AllowPrivateAccess = true))
+	TObjectPtr<AWeapon> EquippedWeapon;
+};

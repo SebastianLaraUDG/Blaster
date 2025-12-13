@@ -6,10 +6,12 @@
 #include "GameFramework/SpringArmComponent.h"
 #include "EnhancedInputSubsystems.h"
 #include "EnhancedInputComponent.h"
+#include "Blaster/BlasterComponents/CombatComponent.h"
 #include "Components/WidgetComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Net/UnrealNetwork.h"
 #include "Blaster/Weapon/Weapon.h"
+#include "Blaster/BlasterComponents/CombatComponent.h"
 
 
 ABlasterCharacter::ABlasterCharacter()
@@ -33,6 +35,10 @@ ABlasterCharacter::ABlasterCharacter()
 	// Overhead Widget.
 	OverheadWidgetComp = CreateDefaultSubobject<UWidgetComponent>(TEXT("OverheadWidget"));
 	OverheadWidgetComp->SetupAttachment(RootComponent);
+	
+	// Combat component.
+	CombatComponent = CreateDefaultSubobject<UCombatComponent>(TEXT("CombatComponent"));
+	CombatComponent->SetIsReplicated(true);
 }
 
 void ABlasterCharacter::Tick(float DeltaTime)
@@ -52,14 +58,24 @@ void ABlasterCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCo
 	{
 		EnhancedInputSubsystem->ClearAllMappings();
 		EnhancedInputSubsystem->AddMappingContext(InputMappingContext, 0);
+		
+		// Equip Weapon Mapping context.
+		EnhancedInputSubsystem->AddMappingContext(EquipWeaponMappingContext,1);
 	}
 
 	// Input actions.
 	UEnhancedInputComponent* EnhancedInput = Cast<UEnhancedInputComponent>(PlayerInputComponent);
-	if (!EnhancedInput) return;
-
+	if (!EnhancedInput)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Enhanced Input Component is NULL in %s"),*GetNameSafe(this));
+		return;
+	}
+	// Bind movement and camera rotation.
 	EnhancedInput->BindAction(MoveInputAction, ETriggerEvent::Triggered, this, &ThisClass::Move);
 	EnhancedInput->BindAction(TurnInputAction, ETriggerEvent::Triggered, this, &ThisClass::Turn);
+	
+	// Bind Equip Weapon.
+	EnhancedInput->BindAction(EquipWeaponInputAction,ETriggerEvent::Triggered,this, &ThisClass::EquipButtonPressed);
 }
 
 void ABlasterCharacter::GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const
@@ -68,6 +84,15 @@ void ABlasterCharacter::GetLifetimeReplicatedProps(TArray<class FLifetimePropert
 
 	// Replicate overlapping weapon.
 	DOREPLIFETIME_CONDITION(ABlasterCharacter, OverlappingWeapon, COND_OwnerOnly);
+}
+
+void ABlasterCharacter::PostInitializeComponents()
+{
+	Super::PostInitializeComponents();
+	if (CombatComponent)
+	{
+		CombatComponent->Character = this;
+	}
 }
 
 void ABlasterCharacter::BeginPlay()
@@ -95,6 +120,14 @@ void ABlasterCharacter::Turn(const FInputActionValue& Value)
 	AddControllerYawInput(Val.X);
 	// Negate Y axis.
 	AddControllerPitchInput(-Val.Y);
+}
+
+void ABlasterCharacter::EquipButtonPressed()
+{
+	if (CombatComponent && HasAuthority())
+	{
+		CombatComponent->EquipWeapon(OverlappingWeapon);
+	}
 }
 
 void ABlasterCharacter::OnRep_OverlappingWeapon(AWeapon* LastWeapon)
