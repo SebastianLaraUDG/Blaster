@@ -48,10 +48,11 @@ private:
 	UPROPERTY(VisibleAnywhere, Category = Camera)
 	TObjectPtr<UCameraComponent> Camera;
 
-	/* Overhead widget.*/
+	/* Overhead widget. */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = HUD, meta = (AllowPrivateAccess = true))
 	TObjectPtr<UWidgetComponent> OverheadWidgetComp;
 
+	/* Overlapping weapon. */
 	UPROPERTY(ReplicatedUsing = OnRep_OverlappingWeapon)
 	TObjectPtr<AWeapon> OverlappingWeapon;
 
@@ -62,6 +63,9 @@ private:
 	/* Combat component. */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Combat, meta = (AllowPrivateAccess = true))
 	TObjectPtr<UCombatComponent> CombatComponent;
+	
+	UFUNCTION(Server, Reliable)
+	void ServerEquipButtonPressed();
 
 public:
 	/* Input Temporal aqui. No se si ponerlo en el controller.*/

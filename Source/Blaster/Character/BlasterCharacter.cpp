@@ -124,9 +124,18 @@ void ABlasterCharacter::Turn(const FInputActionValue& Value)
 
 void ABlasterCharacter::EquipButtonPressed()
 {
-	if (CombatComponent && HasAuthority())
+	if (CombatComponent)
 	{
-		CombatComponent->EquipWeapon(OverlappingWeapon);
+		// Case: Called from the server.
+		if (HasAuthority())
+		{
+			CombatComponent->EquipWeapon(OverlappingWeapon);
+		}
+		// Case: called from a client.
+		else
+		{
+			ServerEquipButtonPressed();
+		}
 	}
 }
 
@@ -140,6 +149,14 @@ void ABlasterCharacter::OnRep_OverlappingWeapon(AWeapon* LastWeapon)
 	if (LastWeapon)
 	{
 		LastWeapon->ShowPickupWidget(false);
+	}
+}
+
+void ABlasterCharacter::ServerEquipButtonPressed_Implementation()
+{
+	if (CombatComponent)
+	{
+		CombatComponent->EquipWeapon(OverlappingWeapon);
 	}
 }
 
