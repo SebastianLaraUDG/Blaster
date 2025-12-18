@@ -31,6 +31,9 @@ protected:
 
 	UFUNCTION(Server, Reliable)
 	void ServerSetAiming(bool NewAiming);
+	
+	UFUNCTION()
+	void OnRep_EquippedWeapon();
 
 private:
 	TObjectPtr<ABlasterCharacter> Character;
@@ -39,7 +42,7 @@ private:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta =(AllowPrivateAccess = true))
 	FName HandSocketName = FName("RightHandSocket");
 
-	UPROPERTY(Replicated, VisibleAnywhere, BlueprintReadOnly, Category = Combat, meta = (AllowPrivateAccess = true))
+	UPROPERTY(ReplicatedUsing=OnRep_EquippedWeapon, VisibleAnywhere, BlueprintReadOnly, Category = Combat, meta = (AllowPrivateAccess = true))
 	TObjectPtr<AWeapon> EquippedWeapon;
 
 	UPROPERTY(Replicated, VisibleAnywhere, BlueprintReadOnly, Category = Combat, meta = (AllowPrivateAccess = true))

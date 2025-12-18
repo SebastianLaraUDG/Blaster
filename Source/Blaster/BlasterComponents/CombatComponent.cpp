@@ -7,6 +7,7 @@
 #include "Blaster/Weapon/Weapon.h"
 #include "Components/SkeletalMeshComponent.h"
 #include "Engine/SkeletalMeshSocket.h"
+#include "GameFramework/CharacterMovementComponent.h"
 #include "Net/UnrealNetwork.h"
 
 
@@ -31,6 +32,15 @@ void UCombatComponent::SetAiming(bool NewAiming)
 	ServerSetAiming(NewAiming);
 }
 
+void UCombatComponent::OnRep_EquippedWeapon()
+{
+	if (EquippedWeapon && Character)
+	{
+		Character->GetCharacterMovement()->bOrientRotationToMovement = false;
+		Character->bUseControllerRotationYaw = true;
+	}
+}
+
 void UCombatComponent::ServerSetAiming_Implementation(bool NewAiming)
 {
 	bIsAiming = NewAiming;
@@ -46,7 +56,7 @@ void UCombatComponent::TickComponent(float DeltaTime, ELevelTick TickType,
 void UCombatComponent::GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
-	
+
 	// Replicate overlapping weapon.
 	DOREPLIFETIME(UCombatComponent, EquippedWeapon);
 	// Replicate aiming state.
@@ -62,7 +72,11 @@ void UCombatComponent::EquipWeapon(AWeapon* WeaponToEquip)
 	// Attach to characters hand socket.
 	if (const USkeletalMeshSocket* HandSocket = Character->GetMesh()->GetSocketByName(HandSocketName))
 	{
-		HandSocket->AttachActor(EquippedWeapon,Character->GetMesh());					
+		HandSocket->AttachActor(EquippedWeapon, Character->GetMesh());
 	}
 	EquippedWeapon->SetOwner(Character);
+
+	// Stop orienting rotation to movement. This is to allow leaning animations in animation blueprint.
+	Character->GetCharacterMovement()->bOrientRotationToMovement = false;
+	Character->bUseControllerRotationYaw = true;
 }
