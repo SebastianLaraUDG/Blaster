@@ -35,7 +35,7 @@ ABlasterCharacter::ABlasterCharacter()
 	// Overhead Widget.
 	OverheadWidgetComp = CreateDefaultSubobject<UWidgetComponent>(TEXT("OverheadWidget"));
 	OverheadWidgetComp->SetupAttachment(RootComponent);
-	
+
 	// Combat component.
 	CombatComponent = CreateDefaultSubobject<UCombatComponent>(TEXT("CombatComponent"));
 	CombatComponent->SetIsReplicated(true);
@@ -58,24 +58,26 @@ void ABlasterCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCo
 	{
 		EnhancedInputSubsystem->ClearAllMappings();
 		EnhancedInputSubsystem->AddMappingContext(InputMappingContext, 0);
-		
+
 		// Equip Weapon Mapping context.
-		EnhancedInputSubsystem->AddMappingContext(EquipWeaponMappingContext,1);
+		EnhancedInputSubsystem->AddMappingContext(EquipWeaponMappingContext, 1);
 	}
 
 	// Input actions.
 	UEnhancedInputComponent* EnhancedInput = Cast<UEnhancedInputComponent>(PlayerInputComponent);
 	if (!EnhancedInput)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("Enhanced Input Component is NULL in %s"),*GetNameSafe(this));
+		UE_LOG(LogTemp, Warning, TEXT("Enhanced Input Component is NULL in %s"), *GetNameSafe(this));
 		return;
 	}
 	// Bind movement and camera rotation.
 	EnhancedInput->BindAction(MoveInputAction, ETriggerEvent::Triggered, this, &ThisClass::Move);
 	EnhancedInput->BindAction(TurnInputAction, ETriggerEvent::Triggered, this, &ThisClass::Turn);
-	
+	EnhancedInput->BindAction(CrouchInputAction, ETriggerEvent::Started, this, &ThisClass::StartCrouching);
+	EnhancedInput->BindAction(CrouchInputAction, ETriggerEvent::Completed, this, &ThisClass::StopCrouching);
+
 	// Bind Equip Weapon.
-	EnhancedInput->BindAction(EquipWeaponInputAction,ETriggerEvent::Triggered,this, &ThisClass::EquipButtonPressed);
+	EnhancedInput->BindAction(EquipWeaponInputAction, ETriggerEvent::Triggered, this, &ThisClass::EquipButtonPressed);
 }
 
 void ABlasterCharacter::GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const
@@ -122,6 +124,16 @@ void ABlasterCharacter::Turn(const FInputActionValue& Value)
 	AddControllerPitchInput(-Val.Y);
 }
 
+void ABlasterCharacter::StartCrouching()
+{
+	Crouch();
+}
+
+void ABlasterCharacter::StopCrouching()
+{
+	UnCrouch();
+}
+
 void ABlasterCharacter::EquipButtonPressed()
 {
 	if (CombatComponent)
@@ -158,6 +170,11 @@ void ABlasterCharacter::ServerEquipButtonPressed_Implementation()
 	{
 		CombatComponent->EquipWeapon(OverlappingWeapon);
 	}
+}
+
+bool ABlasterCharacter::IsWeaponEquipped() const
+{
+	return (CombatComponent && CombatComponent->EquippedWeapon);
 }
 
 void ABlasterCharacter::SetOverlappingWeapon(AWeapon* Weapon)

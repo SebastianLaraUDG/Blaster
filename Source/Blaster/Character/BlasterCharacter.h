@@ -36,6 +36,8 @@ protected:
 	// Gameplay basic movement.
 	void Move(const FInputActionValue& Value);
 	void Turn(const FInputActionValue& Value);
+	void StartCrouching();
+	void StopCrouching();
 	
 	// Equipping Weapon.
 	void EquipButtonPressed();
@@ -78,14 +80,20 @@ public:
 
 	UPROPERTY(EditAnywhere, Category = Input)
 	TObjectPtr<UInputAction> TurnInputAction;
-
-	// Equip weapon Input
+	
+	UPROPERTY(EditAnywhere, Category = Input)
+	TObjectPtr<UInputAction> CrouchInputAction;
+	
+	// Equip weapon Input.
 	UPROPERTY(EditAnywhere, Category = Input)
 	TObjectPtr<UInputMappingContext> EquipWeaponMappingContext;
 	
 	UPROPERTY(EditAnywhere, Category = Input)
 	TObjectPtr<UInputAction> EquipWeaponInputAction;
 	
+	/*~ Fin de seccion de inputs. */
+	
+	bool IsWeaponEquipped() const;
 	
 	void SetOverlappingWeapon(AWeapon* Weapon);
 };

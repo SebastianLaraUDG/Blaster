@@ -21,6 +21,7 @@ public:
 	friend class ABlasterCharacter;
 	UCombatComponent();
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
+	virtual void GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const override;
 	void EquipWeapon(AWeapon* WeaponToEquip);
 	
 protected:
@@ -33,6 +34,6 @@ private:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly,meta =(AllowPrivateAccess = true))
 	FName HandSocketName = FName("RightHandSocket");
 	
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Combat, meta = (AllowPrivateAccess = true))
+	UPROPERTY(Replicated, VisibleAnywhere, BlueprintReadOnly, Category = Combat, meta = (AllowPrivateAccess = true))
 	TObjectPtr<AWeapon> EquippedWeapon;
 };
