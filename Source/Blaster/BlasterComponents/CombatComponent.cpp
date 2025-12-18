@@ -21,6 +21,21 @@ void UCombatComponent::BeginPlay()
 	Super::BeginPlay();
 }
 
+void UCombatComponent::SetAiming(bool NewAiming)
+{
+	bIsAiming = NewAiming;
+	/*
+	 * We set the value even before calling the function for cosmetic (animation) effects.
+	 * It will be quicker for the client to change the animation this way.
+	 */
+	ServerSetAiming(NewAiming);
+}
+
+void UCombatComponent::ServerSetAiming_Implementation(bool NewAiming)
+{
+	bIsAiming = NewAiming;
+}
+
 
 void UCombatComponent::TickComponent(float DeltaTime, ELevelTick TickType,
                                      FActorComponentTickFunction* ThisTickFunction)
@@ -34,6 +49,8 @@ void UCombatComponent::GetLifetimeReplicatedProps(TArray<class FLifetimeProperty
 	
 	// Replicate overlapping weapon.
 	DOREPLIFETIME(UCombatComponent, EquippedWeapon);
+	// Replicate aiming state.
+	DOREPLIFETIME(UCombatComponent, bIsAiming);
 }
 
 void UCombatComponent::EquipWeapon(AWeapon* WeaponToEquip)

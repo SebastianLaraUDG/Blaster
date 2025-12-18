@@ -63,6 +63,8 @@ void ABlasterCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCo
 
 		// Equip Weapon Mapping context.
 		EnhancedInputSubsystem->AddMappingContext(EquipWeaponMappingContext, 1);
+		// Weapon combat mapping context.
+		EnhancedInputSubsystem->AddMappingContext(WeaponCombatInputMappingContext,2);
 	}
 
 	// Input actions.
@@ -79,6 +81,10 @@ void ABlasterCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCo
 
 	// Bind Equip Weapon.
 	EnhancedInput->BindAction(EquipWeaponInputAction, ETriggerEvent::Triggered, this, &ThisClass::EquipButtonPressed);
+	
+	// Bind weapon combat.
+	EnhancedInput->BindAction(EquipWeaponInputAction,ETriggerEvent::Started,this,&ThisClass::AimStarted);
+	EnhancedInput->BindAction(EquipWeaponInputAction,ETriggerEvent::Completed,this,&ThisClass::AimStopped);
 }
 
 void ABlasterCharacter::GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const
@@ -147,6 +153,19 @@ void ABlasterCharacter::EquipButtonPressed()
 	}
 }
 
+void ABlasterCharacter::AimStarted()
+{
+	if (CombatComponent)
+	{
+		CombatComponent->SetAiming(true);
+	}
+}
+
+void ABlasterCharacter::AimStopped()
+{
+	CombatComponent->SetAiming(false);
+}
+
 void ABlasterCharacter::OnRep_OverlappingWeapon(AWeapon* LastWeapon)
 {
 	if (OverlappingWeapon)
@@ -171,6 +190,11 @@ void ABlasterCharacter::ServerEquipButtonPressed_Implementation()
 bool ABlasterCharacter::IsWeaponEquipped() const
 {
 	return (CombatComponent && CombatComponent->EquippedWeapon);
+}
+
+bool ABlasterCharacter::IsAiming() const
+{
+	return (CombatComponent && CombatComponent->bIsAiming);
 }
 
 void ABlasterCharacter::SetOverlappingWeapon(AWeapon* Weapon)

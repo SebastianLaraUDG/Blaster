@@ -12,28 +12,36 @@ class ABlasterCharacter;
 /*
  * Combat component. Responsible for all combat functionality.
  */
-UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
+UCLASS(ClassGroup=(Custom), meta=(BlueprintSpawnableComponent))
 class BLASTER_API UCombatComponent : public UActorComponent
 {
 	GENERATED_BODY()
 
-public:	
+public:
 	friend class ABlasterCharacter;
 	UCombatComponent();
-	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
+	virtual void TickComponent(float DeltaTime, ELevelTick TickType,
+	                           FActorComponentTickFunction* ThisTickFunction) override;
 	virtual void GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const override;
 	void EquipWeapon(AWeapon* WeaponToEquip);
-	
+
 protected:
 	virtual void BeginPlay() override;
-	
+	void SetAiming(bool NewAiming);
+
+	UFUNCTION(Server, Reliable)
+	void ServerSetAiming(bool NewAiming);
+
 private:
 	TObjectPtr<ABlasterCharacter> Character;
-	
+
 	// Hand Socket Name.
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly,meta =(AllowPrivateAccess = true))
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta =(AllowPrivateAccess = true))
 	FName HandSocketName = FName("RightHandSocket");
-	
+
 	UPROPERTY(Replicated, VisibleAnywhere, BlueprintReadOnly, Category = Combat, meta = (AllowPrivateAccess = true))
 	TObjectPtr<AWeapon> EquippedWeapon;
+
+	UPROPERTY(Replicated, VisibleAnywhere, BlueprintReadOnly, Category = Combat, meta = (AllowPrivateAccess = true))
+	bool bIsAiming;
 };

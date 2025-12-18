@@ -40,6 +40,10 @@ protected:
 	
 	// Equipping Weapon.
 	void EquipButtonPressed();
+	
+	// Aiming weapon.
+	void AimStarted();
+	void AimStopped();
 
 private:
 	/* Camera and spring arm*/
@@ -65,6 +69,7 @@ private:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Combat, meta = (AllowPrivateAccess = true))
 	TObjectPtr<UCombatComponent> CombatComponent;
 	
+	// My first Server RPC!
 	UFUNCTION(Server, Reliable)
 	void ServerEquipButtonPressed();
 
@@ -90,9 +95,17 @@ public:
 	UPROPERTY(EditAnywhere, Category = Input)
 	TObjectPtr<UInputAction> EquipWeaponInputAction;
 	
+	// Aiming weapon input.
+	UPROPERTY(EditAnywhere, Category = Input)
+	TObjectPtr<UInputMappingContext> WeaponCombatInputMappingContext;
+	
+	UPROPERTY(EditAnywhere, Category = Input)
+	TObjectPtr<UInputAction> AimInputAction;
+	
+	
 	/*~ Fin de seccion de inputs. */
 	
 	bool IsWeaponEquipped() const;
-	
+	bool IsAiming() const;
 	void SetOverlappingWeapon(AWeapon* Weapon);
 };
