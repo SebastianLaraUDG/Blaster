@@ -36,8 +36,7 @@ protected:
 	// Gameplay basic movement.
 	void Move(const FInputActionValue& Value);
 	void Turn(const FInputActionValue& Value);
-	void StartCrouching();
-	void StopCrouching();
+	void HandleCrouchRequest();
 	
 	// Equipping Weapon.
 	void EquipButtonPressed();

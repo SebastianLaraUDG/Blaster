@@ -31,6 +31,8 @@ ABlasterCharacter::ABlasterCharacter()
 
 	bUseControllerRotationYaw = false;
 	GetCharacterMovement()->bOrientRotationToMovement = true;
+	// Make sure character can crouch.
+	GetCharacterMovement()->GetNavAgentPropertiesRef().bCanCrouch = true;
 
 	// Overhead Widget.
 	OverheadWidgetComp = CreateDefaultSubobject<UWidgetComponent>(TEXT("OverheadWidget"));
@@ -73,8 +75,7 @@ void ABlasterCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCo
 	// Bind movement and camera rotation.
 	EnhancedInput->BindAction(MoveInputAction, ETriggerEvent::Triggered, this, &ThisClass::Move);
 	EnhancedInput->BindAction(TurnInputAction, ETriggerEvent::Triggered, this, &ThisClass::Turn);
-	EnhancedInput->BindAction(CrouchInputAction, ETriggerEvent::Started, this, &ThisClass::StartCrouching);
-	EnhancedInput->BindAction(CrouchInputAction, ETriggerEvent::Completed, this, &ThisClass::StopCrouching);
+	EnhancedInput->BindAction(CrouchInputAction, ETriggerEvent::Started, this, &ThisClass::HandleCrouchRequest);
 
 	// Bind Equip Weapon.
 	EnhancedInput->BindAction(EquipWeaponInputAction, ETriggerEvent::Triggered, this, &ThisClass::EquipButtonPressed);
@@ -124,14 +125,9 @@ void ABlasterCharacter::Turn(const FInputActionValue& Value)
 	AddControllerPitchInput(-Val.Y);
 }
 
-void ABlasterCharacter::StartCrouching()
+void ABlasterCharacter::HandleCrouchRequest()
 {
-	Crouch();
-}
-
-void ABlasterCharacter::StopCrouching()
-{
-	UnCrouch();
+	IsCrouched() ? UnCrouch() : Crouch();
 }
 
 void ABlasterCharacter::EquipButtonPressed()
