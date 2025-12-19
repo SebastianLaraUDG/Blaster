@@ -64,7 +64,7 @@ void ABlasterCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCo
 		// Equip Weapon Mapping context.
 		EnhancedInputSubsystem->AddMappingContext(EquipWeaponMappingContext, 1);
 		// Weapon combat mapping context.
-		EnhancedInputSubsystem->AddMappingContext(WeaponCombatInputMappingContext,2);
+		EnhancedInputSubsystem->AddMappingContext(WeaponCombatInputMappingContext, 2);
 	}
 
 	// Input actions.
@@ -77,14 +77,16 @@ void ABlasterCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCo
 	// Bind movement and camera rotation.
 	EnhancedInput->BindAction(MoveInputAction, ETriggerEvent::Triggered, this, &ThisClass::Move);
 	EnhancedInput->BindAction(TurnInputAction, ETriggerEvent::Triggered, this, &ThisClass::Turn);
+	EnhancedInput->BindAction(JumpInputAction, ETriggerEvent::Started, this, &ACharacter::Jump);
+	EnhancedInput->BindAction(JumpInputAction, ETriggerEvent::Completed, this, &ACharacter::StopJumping);
 	EnhancedInput->BindAction(CrouchInputAction, ETriggerEvent::Started, this, &ThisClass::HandleCrouchRequest);
 
 	// Bind Equip Weapon.
 	EnhancedInput->BindAction(EquipWeaponInputAction, ETriggerEvent::Triggered, this, &ThisClass::EquipButtonPressed);
-	
+
 	// Bind weapon combat.
-	EnhancedInput->BindAction(EquipWeaponInputAction,ETriggerEvent::Started,this,&ThisClass::AimStarted);
-	EnhancedInput->BindAction(EquipWeaponInputAction,ETriggerEvent::Completed,this,&ThisClass::AimStopped);
+	EnhancedInput->BindAction(EquipWeaponInputAction, ETriggerEvent::Started, this, &ThisClass::AimStarted);
+	EnhancedInput->BindAction(EquipWeaponInputAction, ETriggerEvent::Completed, this, &ThisClass::AimStopped);
 }
 
 void ABlasterCharacter::GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const

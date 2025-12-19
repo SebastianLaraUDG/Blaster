@@ -88,6 +88,9 @@ public:
 	UPROPERTY(EditAnywhere, Category = Input)
 	TObjectPtr<UInputAction> CrouchInputAction;
 	
+	UPROPERTY(EditAnywhere, Category = Input)
+	TObjectPtr<UInputAction> JumpInputAction;
+	
 	// Equip weapon Input.
 	UPROPERTY(EditAnywhere, Category = Input)
 	TObjectPtr<UInputMappingContext> EquipWeaponMappingContext;
