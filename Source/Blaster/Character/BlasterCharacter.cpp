@@ -85,8 +85,8 @@ void ABlasterCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCo
 	EnhancedInput->BindAction(EquipWeaponInputAction, ETriggerEvent::Triggered, this, &ThisClass::EquipButtonPressed);
 
 	// Bind weapon combat.
-	EnhancedInput->BindAction(EquipWeaponInputAction, ETriggerEvent::Started, this, &ThisClass::AimStarted);
-	EnhancedInput->BindAction(EquipWeaponInputAction, ETriggerEvent::Completed, this, &ThisClass::AimStopped);
+	EnhancedInput->BindAction(AimInputAction, ETriggerEvent::Started, this, &ThisClass::AimStarted);
+	EnhancedInput->BindAction(AimInputAction, ETriggerEvent::Completed, this, &ThisClass::AimStopped);
 }
 
 void ABlasterCharacter::GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const
@@ -165,7 +165,10 @@ void ABlasterCharacter::AimStarted()
 
 void ABlasterCharacter::AimStopped()
 {
-	CombatComponent->SetAiming(false);
+	if (CombatComponent)
+	{
+		CombatComponent->SetAiming(false);
+	}
 }
 
 void ABlasterCharacter::OnRep_OverlappingWeapon(AWeapon* LastWeapon)
