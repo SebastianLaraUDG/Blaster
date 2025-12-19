@@ -2,7 +2,6 @@
 
 
 #include "CombatComponent.h"
-
 #include "Blaster/Character/BlasterCharacter.h"
 #include "Blaster/Weapon/Weapon.h"
 #include "Components/SkeletalMeshComponent.h"
@@ -14,22 +13,46 @@
 UCombatComponent::UCombatComponent()
 {
 	PrimaryComponentTick.bCanEverTick = false;
+
+	BaseWalkSpeed = 600.f;
+	AimWalkSpeed = 450.f;
 }
 
 
 void UCombatComponent::BeginPlay()
 {
 	Super::BeginPlay();
+
+	if (Character)
+	{
+		Character->GetCharacterMovement()->MaxWalkSpeed = BaseWalkSpeed;
+	}
 }
 
 void UCombatComponent::SetAiming(bool NewAiming)
 {
 	bIsAiming = NewAiming;
 	/*
-	 * We set the value even before calling the function for cosmetic (animation) effects.
+	 * We set the value even before calling the ServerSetAiming() function for cosmetic (animation) effects.
 	 * It will be quicker for the client to change the animation this way.
 	 */
 	ServerSetAiming(NewAiming);
+	
+	// Change walk speed locally.
+	if (Character)
+	{
+		Character->GetCharacterMovement()->MaxWalkSpeed = NewAiming ? AimWalkSpeed : BaseWalkSpeed;
+	}
+
+}
+
+void UCombatComponent::ServerSetAiming_Implementation(bool NewAiming)
+{
+	bIsAiming = NewAiming;
+	if (Character)
+	{
+		Character->GetCharacterMovement()->MaxWalkSpeed = NewAiming ? AimWalkSpeed : BaseWalkSpeed;
+	} 
 }
 
 void UCombatComponent::OnRep_EquippedWeapon()
@@ -40,12 +63,6 @@ void UCombatComponent::OnRep_EquippedWeapon()
 		Character->bUseControllerRotationYaw = true;
 	}
 }
-
-void UCombatComponent::ServerSetAiming_Implementation(bool NewAiming)
-{
-	bIsAiming = NewAiming;
-}
-
 
 void UCombatComponent::TickComponent(float DeltaTime, ELevelTick TickType,
                                      FActorComponentTickFunction* ThisTickFunction)
