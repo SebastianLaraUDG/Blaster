@@ -185,7 +185,7 @@ void ABlasterCharacter::AimOffset(float DeltaTime)
 	Velocity.Z = 0.f;
 	const float Speed = Velocity.Size();
 	bool bIsInAir = GetCharacterMovement()->IsFalling();
-	
+
 	if (Speed == 0.f && !bIsInAir) // Standing still, not jumping.
 	{
 		FRotator CurrentRotation = FRotator(0.f, GetBaseAimRotation().Yaw, 0.f);
@@ -199,8 +199,17 @@ void ABlasterCharacter::AimOffset(float DeltaTime)
 		AO_Yaw = 0.f;
 		bUseControllerRotationYaw = true;
 	}
-	
+
 	AO_Pitch = GetBaseAimRotation().Pitch;
+
+	// Convert compressed value to a valid range [-90,90].
+	if (AO_Pitch > 90.f && !IsLocallyControlled())
+	{
+		// Map pitch from the range [270,360) to [-90,0)
+		FVector2D InRange(270.f, 360.f);
+		FVector2D OutRange(-90.f, 0.f);
+		AO_Pitch = FMath::GetMappedRangeValueClamped(InRange, OutRange, AO_Pitch);
+	}
 }
 
 void ABlasterCharacter::OnRep_OverlappingWeapon(AWeapon* LastWeapon)
