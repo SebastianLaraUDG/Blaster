@@ -7,7 +7,7 @@
 #include "BlasterAnimInstance.generated.h"
 
 class ABlasterCharacter;
-
+class AWeapon;
 /**
  * Base class for animation blueprint specifically for
  * Blaster Character.
@@ -36,6 +36,9 @@ private:
 
 	UPROPERTY(BlueprintReadOnly, Category = Character, meta = (AllowPrivateAccess = "true"))
 	bool bWeaponEquipped;
+	
+	UPROPERTY(BlueprintReadOnly, Category = Character, meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<AWeapon> EquippedWeapon;
 
 	UPROPERTY(BlueprintReadOnly, Category = Character, meta = (AllowPrivateAccess = "true"))
 	bool bIsCrouched;
@@ -66,4 +69,12 @@ private:
 	
 	UPROPERTY(BlueprintReadOnly, Category = Character, meta = (AllowPrivateAccess = "true"))
 	float AO_Pitch;
+	
+	/* Left hand IK. */
+	
+	UPROPERTY(BlueprintReadOnly, Category = Character, meta = (AllowPrivateAccess = "true"))
+	FTransform LeftHandTransform;
+	
+	UPROPERTY(BlueprintReadOnly, EditDefaultsOnly, Category = Character, meta = (AllowPrivateAccess = "true"))
+	FName RightHandBoneName = FName("RightHand");
 };

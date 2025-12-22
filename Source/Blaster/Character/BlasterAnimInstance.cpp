@@ -3,6 +3,7 @@
 
 #include "BlasterAnimInstance.h"
 #include "BlasterCharacter.h"
+#include "Blaster/Weapon/Weapon.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Kismet/KismetMathLibrary.h"
 
@@ -33,6 +34,7 @@ void UBlasterAnimInstance::NativeUpdateAnimation(const float DeltaSeconds)
 	bIsAccelerating = BlasterCharacter->GetCharacterMovement()->GetCurrentAcceleration().Size() > 0.f ? true : false;
 	// Weapon equipped.
 	bWeaponEquipped = BlasterCharacter->IsWeaponEquipped();
+	EquippedWeapon = BlasterCharacter->GetEquippedWeapon();
 	// Crouched.
 	bIsCrouched = BlasterCharacter->IsCrouched();
 	// Is aiming weapon.
@@ -52,7 +54,22 @@ void UBlasterAnimInstance::NativeUpdateAnimation(const float DeltaSeconds)
 	const float Target = Delta.Yaw / DeltaSeconds;
 	const float Interp = FMath::FInterpTo(Lean, Target, DeltaSeconds, LeanInterpSpeed);
 	Lean = FMath::Clamp(Interp, -90.f, 90.f);
-	
+
 	AO_Yaw = BlasterCharacter->GetAO_Yaw();
 	AO_Pitch = BlasterCharacter->GetAO_Pitch();
+
+	if (bWeaponEquipped && EquippedWeapon && EquippedWeapon->GetMesh() && BlasterCharacter->GetMesh())
+	{
+		LeftHandTransform = EquippedWeapon->GetMesh()->GetSocketTransform(
+			FName("LeftHandSocket"), RTS_World // TODO: Make left hand socket a uproperty?
+		);
+
+		FVector OutPosition;
+		FRotator OutRotation;
+
+		BlasterCharacter->GetMesh()->TransformToBoneSpace(RightHandBoneName, LeftHandTransform.GetLocation(),
+		                                                  FRotator::ZeroRotator, OutPosition, OutRotation);
+		LeftHandTransform.SetLocation(OutPosition);
+		LeftHandTransform.SetRotation(FQuat(OutRotation));		
+	}
 }

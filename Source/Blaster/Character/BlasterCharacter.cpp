@@ -255,3 +255,8 @@ void ABlasterCharacter::SetOverlappingWeapon(AWeapon* Weapon)
 		OverlappingWeapon->ShowPickupWidget(true);
 	}
 }
+
+AWeapon* ABlasterCharacter::GetEquippedWeapon() const
+{
+	return CombatComponent ? CombatComponent->EquippedWeapon : nullptr;
+}
