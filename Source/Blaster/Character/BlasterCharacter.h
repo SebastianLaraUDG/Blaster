@@ -30,6 +30,7 @@ public:
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 	virtual void GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const override;
 	virtual void PostInitializeComponents() override;
+
 protected:
 	virtual void BeginPlay() override;
 
@@ -37,13 +38,15 @@ protected:
 	void Move(const FInputActionValue& Value);
 	void Turn(const FInputActionValue& Value);
 	void HandleCrouchRequest();
-	
+
 	// Equipping Weapon.
 	void EquipButtonPressed();
-	
+
 	// Aiming weapon.
 	void AimStarted();
 	void AimStopped();
+
+	void AimOffset(float DeltaTime);
 
 private:
 	/* Camera and spring arm*/
@@ -68,10 +71,14 @@ private:
 	/* Combat component. */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Combat, meta = (AllowPrivateAccess = true))
 	TObjectPtr<UCombatComponent> CombatComponent;
-	
+
 	// My first Server RPC!
 	UFUNCTION(Server, Reliable)
 	void ServerEquipButtonPressed();
+
+	float AO_Yaw;
+	float AO_Pitch;
+	FRotator StartingAimRotation;
 
 public:
 	/* Input Temporal aqui. No se si ponerlo en el controller.*/
@@ -84,31 +91,33 @@ public:
 
 	UPROPERTY(EditAnywhere, Category = Input)
 	TObjectPtr<UInputAction> TurnInputAction;
-	
+
 	UPROPERTY(EditAnywhere, Category = Input)
 	TObjectPtr<UInputAction> CrouchInputAction;
-	
+
 	UPROPERTY(EditAnywhere, Category = Input)
 	TObjectPtr<UInputAction> JumpInputAction;
-	
+
 	// Equip weapon Input.
 	UPROPERTY(EditAnywhere, Category = Input)
 	TObjectPtr<UInputMappingContext> EquipWeaponMappingContext;
-	
+
 	UPROPERTY(EditAnywhere, Category = Input)
 	TObjectPtr<UInputAction> EquipWeaponInputAction;
-	
+
 	// Aiming weapon input.
 	UPROPERTY(EditAnywhere, Category = Input)
 	TObjectPtr<UInputMappingContext> WeaponCombatInputMappingContext;
-	
+
 	UPROPERTY(EditAnywhere, Category = Input)
 	TObjectPtr<UInputAction> AimInputAction;
-	
-	
+
+
 	/*~ Fin de seccion de inputs. */
-	
+
 	bool IsWeaponEquipped() const;
 	bool IsAiming() const;
 	void SetOverlappingWeapon(AWeapon* Weapon);
+	FORCEINLINE float GetAO_Yaw() const { return AO_Yaw; }
+	FORCEINLINE float GetAO_Pitch() const { return AO_Pitch; }
 };
