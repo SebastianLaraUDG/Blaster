@@ -14,11 +14,12 @@ class UCameraComponent;
 class UInputMappingContext;
 class UInputAction;
 class AWeapon;
+class UAnimMontage;
 
 struct FInputActionValue;
 
 /*
- * 
+ * Main player character.
  */
 UCLASS()
 class BLASTER_API ABlasterCharacter : public ACharacter
@@ -31,6 +32,7 @@ public:
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 	virtual void GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const override;
 	virtual void PostInitializeComponents() override;
+	void PlayFireMontage(bool bAiming);
 
 protected:
 	virtual void BeginPlay() override;
@@ -46,6 +48,9 @@ protected:
 	// Aiming weapon.
 	void AimStarted();
 	void AimStopped();
+	// Firing weapon.
+	void FireWeaponPressed();
+	void FireWeaponReleased();
 
 	void AimOffset(float DeltaTime);
 	virtual void Jump() override;
@@ -88,6 +93,9 @@ private:
 	
 	ETurningInPlace TurningInPlace;
 	void TurnInPlace(float DeltaTime);
+	
+	UPROPERTY(EditAnywhere, Category = Combat)
+	TObjectPtr<UAnimMontage> FireWeaponMontage;
 
 public:
 	/* Input Temporal aqui. No se si ponerlo en el controller.*/
@@ -121,6 +129,8 @@ public:
 	UPROPERTY(EditAnywhere, Category = Input)
 	TObjectPtr<UInputAction> AimInputAction;
 
+	UPROPERTY(EditAnywhere, Category = Input)
+	TObjectPtr<UInputAction> FireInputAction;
 
 	/*~ Fin de seccion de inputs. */
 

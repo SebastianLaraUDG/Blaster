@@ -14,6 +14,7 @@
 #include "Blaster/BlasterComponents/CombatComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "Kismet/KismetMathLibrary.h"
+#include "BlasterAnimInstance.h"
 
 
 ABlasterCharacter::ABlasterCharacter()
@@ -98,6 +99,8 @@ void ABlasterCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCo
 	// Bind weapon combat.
 	EnhancedInput->BindAction(AimInputAction, ETriggerEvent::Started, this, &ThisClass::AimStarted);
 	EnhancedInput->BindAction(AimInputAction, ETriggerEvent::Completed, this, &ThisClass::AimStopped);
+	EnhancedInput->BindAction(FireInputAction, ETriggerEvent::Triggered, this, &ThisClass::FireWeaponPressed);
+	EnhancedInput->BindAction(FireInputAction, ETriggerEvent::Completed, this, &ThisClass::FireWeaponReleased);
 }
 
 void ABlasterCharacter::GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const
@@ -114,6 +117,20 @@ void ABlasterCharacter::PostInitializeComponents()
 	if (CombatComponent)
 	{
 		CombatComponent->Character = this;
+	}
+}
+
+void ABlasterCharacter::PlayFireMontage(bool bAiming)
+{
+	if (!CombatComponent || !IsWeaponEquipped()) return;
+
+	UAnimInstance* const AnimInstance = GetMesh()->GetAnimInstance();
+
+	if (AnimInstance && FireWeaponMontage)
+	{
+		AnimInstance->Montage_Play(FireWeaponMontage);
+		const FName SectionName = bAiming ? FName("RifleAim") : FName("RifleHip"); // TODO: make variables?
+		AnimInstance->Montage_JumpToSection(SectionName);
 	}
 }
 
@@ -179,6 +196,24 @@ void ABlasterCharacter::AimStopped()
 	if (CombatComponent)
 	{
 		CombatComponent->SetAiming(false);
+	}
+}
+
+void ABlasterCharacter::FireWeaponPressed()
+{
+	if (CombatComponent)
+	{
+		CombatComponent->FireButtonPressed(true);
+		UE_LOG(LogTemp, Display, TEXT("Character is shooting."));
+	}
+}
+
+void ABlasterCharacter::FireWeaponReleased()
+{
+	if (CombatComponent)
+	{
+		CombatComponent->FireButtonPressed(false);
+		UE_LOG(LogTemp, Display, TEXT("Character stopped shooting."));
 	}
 }
 
