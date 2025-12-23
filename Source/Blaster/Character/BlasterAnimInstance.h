@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Animation/AnimInstance.h"
+#include "Blaster/BlasterTypes/TurningInPlace.h"
 #include "BlasterAnimInstance.generated.h"
 
 class ABlasterCharacter;
@@ -77,4 +78,8 @@ private:
 	
 	UPROPERTY(BlueprintReadOnly, EditDefaultsOnly, Category = Character, meta = (AllowPrivateAccess = "true"))
 	FName RightHandBoneName = FName("RightHand");
+	
+	
+	UPROPERTY(BlueprintReadOnly, Category = Character, meta = (AllowPrivateAccess = "true"))
+	ETurningInPlace TurningInPlace;
 };
