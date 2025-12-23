@@ -45,7 +45,7 @@ ABlasterCharacter::ABlasterCharacter()
 	// Combat component.
 	CombatComponent = CreateDefaultSubobject<UCombatComponent>(TEXT("CombatComponent"));
 	CombatComponent->SetIsReplicated(true);
-	
+
 	TurningInPlace = ETurningInPlace::ETIP_NotTurning;
 }
 
@@ -193,7 +193,12 @@ void ABlasterCharacter::AimOffset(float DeltaTime)
 		FRotator CurrentRotation = FRotator(0.f, GetBaseAimRotation().Yaw, 0.f);
 		FRotator DeltaAimRotation = UKismetMathLibrary::NormalizedDeltaRotator(CurrentRotation, StartingAimRotation);
 		AO_Yaw = DeltaAimRotation.Yaw;
-		bUseControllerRotationYaw = false;
+
+		if (TurningInPlace == ETurningInPlace::ETIP_NotTurning) // Not turning.
+		{
+			InterpAO_Yaw = AO_Yaw;
+		}
+		bUseControllerRotationYaw = true;
 		TurnInPlace(DeltaTime);
 	}
 	if (Speed > 0.f || bIsInAir) // Running or jumping
@@ -218,13 +223,25 @@ void ABlasterCharacter::AimOffset(float DeltaTime)
 
 void ABlasterCharacter::TurnInPlace(float DeltaTime)
 {
-	if (AO_Yaw> 90.f)
+	if (AO_Yaw > 90.f)
 	{
 		TurningInPlace = ETurningInPlace::ETIP_Right;
 	}
 	else if (AO_Yaw < -90.f)
 	{
 		TurningInPlace = ETurningInPlace::ETIP_Left;
+	}
+
+	if (TurningInPlace != ETurningInPlace::ETIP_NotTurning) // We are turning.
+	{
+		InterpAO_Yaw = FMath::FInterpTo(InterpAO_Yaw, 0.f, DeltaTime, TurningInterpolationSpeed);
+		AO_Yaw = InterpAO_Yaw;
+		if (FMath::Abs(AO_Yaw) < 15.0f)
+		{
+			TurningInPlace = ETurningInPlace::ETIP_NotTurning;
+			// Reset Starting Aim Rotation.
+			StartingAimRotation = FRotator(0.f, GetBaseAimRotation().Yaw, 0.f);
+		}
 	}
 }
 

@@ -78,8 +78,12 @@ private:
 	void ServerEquipButtonPressed();
 
 	float AO_Yaw;
+	float InterpAO_Yaw;
 	float AO_Pitch;
 	FRotator StartingAimRotation;
+	
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Combat, meta = (AllowPrivateAccess = true, ClampMin = 0.0f))
+	float TurningInterpolationSpeed = 10.f;
 	
 	ETurningInPlace TurningInPlace;
 	void TurnInPlace(float DeltaTime);
