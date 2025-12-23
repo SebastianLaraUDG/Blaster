@@ -48,6 +48,7 @@ protected:
 	void AimStopped();
 
 	void AimOffset(float DeltaTime);
+	virtual void Jump() override;
 
 private:
 	/* Camera and spring arm*/
