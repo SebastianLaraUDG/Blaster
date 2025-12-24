@@ -29,6 +29,16 @@ void UCombatComponent::BeginPlay()
 	}
 }
 
+void UCombatComponent::GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+	// Replicate overlapping weapon.
+	DOREPLIFETIME(UCombatComponent, EquippedWeapon);
+	// Replicate aiming state.
+	DOREPLIFETIME(UCombatComponent, bIsAiming);
+}
+
 void UCombatComponent::SetAiming(bool NewAiming)
 {
 	bIsAiming = NewAiming;
@@ -37,13 +47,12 @@ void UCombatComponent::SetAiming(bool NewAiming)
 	 * It will be quicker for the client to change the animation this way.
 	 */
 	ServerSetAiming(NewAiming);
-	
+
 	// Change walk speed locally.
 	if (Character)
 	{
 		Character->GetCharacterMovement()->MaxWalkSpeed = NewAiming ? AimWalkSpeed : BaseWalkSpeed;
 	}
-
 }
 
 void UCombatComponent::ServerSetAiming_Implementation(bool NewAiming)
@@ -52,7 +61,7 @@ void UCombatComponent::ServerSetAiming_Implementation(bool NewAiming)
 	if (Character)
 	{
 		Character->GetCharacterMovement()->MaxWalkSpeed = NewAiming ? AimWalkSpeed : BaseWalkSpeed;
-	} 
+	}
 }
 
 void UCombatComponent::OnRep_EquippedWeapon()
@@ -67,9 +76,26 @@ void UCombatComponent::OnRep_EquippedWeapon()
 void UCombatComponent::FireButtonPressed(bool bPressed)
 {
 	bFireButtonPressed = bPressed;
-	if (Character && bFireButtonPressed)
+
+	if (bFireButtonPressed)
+	{
+		ServerFire();
+	}
+}
+
+void UCombatComponent::ServerFire_Implementation()
+{
+	MulticastFire();
+}
+
+void UCombatComponent::MulticastFire_Implementation()
+{
+	if (!EquippedWeapon) return;
+	UE_LOG(LogTemp, Display, TEXT("FIRE BUTTON PRESSED: %d"), bFireButtonPressed);
+	if (Character)
 	{
 		Character->PlayFireMontage(bIsAiming);
+		EquippedWeapon->Fire();
 	}
 }
 
@@ -77,16 +103,6 @@ void UCombatComponent::TickComponent(float DeltaTime, ELevelTick TickType,
                                      FActorComponentTickFunction* ThisTickFunction)
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
-}
-
-void UCombatComponent::GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const
-{
-	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
-
-	// Replicate overlapping weapon.
-	DOREPLIFETIME(UCombatComponent, EquippedWeapon);
-	// Replicate aiming state.
-	DOREPLIFETIME(UCombatComponent, bIsAiming);
 }
 
 void UCombatComponent::EquipWeapon(AWeapon* WeaponToEquip)
