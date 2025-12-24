@@ -9,6 +9,7 @@
 class UWidgetComponent;
 class USphereComponent;
 class USkeletalMeshComponent;
+class UAnimationAsset;
 
 UENUM(BlueprintType)
 enum class EWeaponState : uint8
@@ -33,6 +34,7 @@ public:
 	virtual void Tick(float DeltaTime) override;
 	virtual void GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const override;
 	void ShowPickupWidget(bool bShowWidget);
+	void Fire();
 
 	void SetWeaponState(EWeaponState NewState);
 
@@ -64,6 +66,9 @@ private:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Weapon Properties", meta = (AllowPrivateAccess = true))
 	TObjectPtr<UWidgetComponent> PickupWidget;
 
+	UPROPERTY(EditDefaultsOnly, Category = "Weapon Properties")
+	TObjectPtr<UAnimationAsset> FireAnimation;
+	
 	UFUNCTION()
 	void OnRep_WeaponState();
 
