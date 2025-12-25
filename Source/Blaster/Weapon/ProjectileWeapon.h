@@ -6,6 +6,7 @@
 #include "Weapon.h"
 #include "ProjectileWeapon.generated.h"
 
+class AProjectile;
 /**
  * A Weapon that actually spawns a projectile, which will move throughout the world.
  */
@@ -14,4 +15,13 @@ class BLASTER_API AProjectileWeapon : public AWeapon
 {
 	GENERATED_BODY()
 	
+public:
+	virtual void Fire(const FVector& HitTarget) override;
+	
+private:
+	UPROPERTY(EditDefaultsOnly)
+	TSubclassOf<AProjectile> ProjectileClass;
+	
+	UPROPERTY(EditAnywhere,BlueprintReadOnly, meta = (AllowPrivateAccess = true))
+	FName MuzzleSocketName = FName("MuzzleFlash");
 };

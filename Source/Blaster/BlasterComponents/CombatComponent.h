@@ -43,7 +43,7 @@ protected:
 	UFUNCTION(NetMulticast, Reliable)
 	void MulticastFire();
 
-	void TraceUnderCrosshairs(FHitResult& TraceHitResult) const;
+	void TraceUnderCrosshairs(FHitResult& TraceHitResult);
 
 private:
 	TObjectPtr<ABlasterCharacter> Character;
@@ -69,4 +69,6 @@ private:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = true))
 	float TraceLength = 100000.f;
+	
+	FVector HitTarget;
 };

@@ -84,7 +84,7 @@ void UCombatComponent::FireButtonPressed(bool bPressed)
 	}
 }
 
-void UCombatComponent::TraceUnderCrosshairs(FHitResult& TraceHitResult) const
+void UCombatComponent::TraceUnderCrosshairs(FHitResult& TraceHitResult)
 // TODO: Is it not more convenient making the hit result a local variable?
 {
 	FVector2D ViewportSize;
@@ -109,10 +109,14 @@ void UCombatComponent::TraceUnderCrosshairs(FHitResult& TraceHitResult) const
 		if (!TraceHitResult.bBlockingHit)
 		{
 			TraceHitResult.ImpactPoint = End;
+			HitTarget = End;
 		}
-#if IF_WITH_EDITOR
+		else
+		{
+			HitTarget = TraceHitResult.ImpactPoint;
+		}
+
 		DrawDebugSphere(GetWorld(), TraceHitResult.ImpactPoint, 12.f, 12, FColor::Red);
-#endif
 	}
 }
 
@@ -128,7 +132,7 @@ void UCombatComponent::MulticastFire_Implementation()
 	if (Character)
 	{
 		Character->PlayFireMontage(bIsAiming);
-		EquippedWeapon->Fire();
+		EquippedWeapon->Fire(HitTarget);
 	}
 }
 
