@@ -6,7 +6,6 @@
 #include "Components/BoxComponent.h"
 #include "GameFramework/ProjectileMovementComponent.h"
 #include "NiagaraFunctionLibrary.h"
-#include "NiagaraSystem.h"
 #include "NiagaraComponent.h"
 
 
