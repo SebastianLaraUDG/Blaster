@@ -8,6 +8,8 @@
 
 class UProjectileMovementComponent;
 class UBoxComponent;
+class UNiagaraSystem;
+class UNiagaraComponent;
 /*
  *
  */
@@ -29,6 +31,13 @@ private:
 	
 	UPROPERTY(EditAnywhere)
 	TObjectPtr<UProjectileMovementComponent> ProjectileMovement;
+	
+	/* VFX. */
+	UPROPERTY(EditDefaultsOnly)
+	TObjectPtr<UNiagaraSystem> TracerAsset;
+	
+	UPROPERTY(EditAnywhere)
+	TObjectPtr<UNiagaraComponent>  TracerNiagaraComponent;
 	
 public:	
 
