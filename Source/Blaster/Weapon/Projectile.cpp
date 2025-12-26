@@ -7,7 +7,8 @@
 #include "GameFramework/ProjectileMovementComponent.h"
 #include "NiagaraFunctionLibrary.h"
 #include "NiagaraComponent.h"
-
+#include "Kismet/GameplayStatics.h"
+#include "Sound/SoundCue.h"
 
 AProjectile::AProjectile()
 {
@@ -39,12 +40,39 @@ void AProjectile::BeginPlay()
 	{
 		UNiagaraFunctionLibrary::SpawnSystemAttached(
 			TracerAsset, RootComponent, NAME_None, GetActorLocation(),
-		       GetActorRotation(), EAttachLocation::Type::KeepWorldPosition,
-		       true);
+			GetActorRotation(), EAttachLocation::Type::KeepWorldPosition,
+			true);
 	}
+	// Hit events on server only.
+	if (HasAuthority())
+	{
+		CollisionBox->OnComponentHit.AddDynamic(this, &ThisClass::OnHit);
+	}
+}
+
+void AProjectile::OnHit(UPrimitiveComponent* HitComp, AActor* HitOther, UPrimitiveComponent* OtherComp,
+                        FVector NormalImpulse, const FHitResult& Hit)
+{
+	// TODO: Instead of destroying, when implementing object pool, make invisible, disable collision and return to pool.
+	// The downside of doing that is that I will have to implement replication.
+	Destroy();
 }
 
 void AProjectile::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+}
+
+void AProjectile::Destroyed()
+{
+	Super::Destroyed();
+
+	if (ImpactParticles)
+	{
+		UNiagaraFunctionLibrary::SpawnSystemAtLocation(this, ImpactParticles, GetActorLocation(), GetActorRotation());
+	}
+	if (ImpactSound)
+	{
+		UGameplayStatics::PlaySoundAtLocation(this, ImpactSound, GetActorLocation(), GetActorRotation());
+	}
 }
