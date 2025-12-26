@@ -10,6 +10,9 @@ void AProjectileWeapon::Fire(const FVector& HitTarget)
 {
 	Super::Fire(HitTarget);
 
+	// Spawn projectile only on server.
+	if (!HasAuthority()) return;
+	
 	APawn* const InstigatorPawn = Cast<APawn>(GetOwner());
 	if (!ProjectileClass || !InstigatorPawn) return;
 	
