@@ -26,6 +26,7 @@ AProjectile::AProjectile()
 	ProjectileMovement = CreateDefaultSubobject<UProjectileMovementComponent>(TEXT("Projectile Movement Component"));
 	ProjectileMovement->bRotationFollowsVelocity = true;
 
+	// Tracer Particle.
 	TracerNiagaraComponent = CreateDefaultSubobject<UNiagaraComponent>(TEXT("Tracer Niagara Component"));
 	TracerNiagaraComponent->SetupAttachment(RootComponent);
 }
