@@ -6,6 +6,7 @@
 #include "GameFramework/Actor.h"
 #include "Weapon.generated.h"
 
+class ACasing;
 class UWidgetComponent;
 class USphereComponent;
 class USkeletalMeshComponent;
@@ -68,6 +69,9 @@ private:
 
 	UPROPERTY(EditDefaultsOnly, Category = "Weapon Properties")
 	TObjectPtr<UAnimationAsset> FireAnimation;
+	
+	UPROPERTY(EditDefaultsOnly)
+	TSubclassOf<ACasing> CasingClass;
 	
 	UFUNCTION()
 	void OnRep_WeaponState();
