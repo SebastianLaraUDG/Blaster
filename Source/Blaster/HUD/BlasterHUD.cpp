@@ -6,4 +6,47 @@
 void ABlasterHUD::DrawHUD()
 {
 	Super::DrawHUD();
+	if (GEngine)
+	{
+		FVector2D ViewportSize;
+		GEngine->GameViewport->GetViewportSize(ViewportSize);
+		const FVector2D ViewportCenter(ViewportSize.X / 2.f, ViewportSize.Y / 2.f);
+
+		UE_LOG(LogTemp, Display, TEXT("Viewport size: %f, %f"), ViewportSize.X, ViewportSize.Y);
+		UE_LOG(LogTemp, Display, TEXT("Viewport Center: %f, %f"), ViewportCenter.X, ViewportCenter.Y);
+
+		if (HUDPackage.CrosshairCenter)
+		{
+			DrawCrosshair(HUDPackage.CrosshairCenter, ViewportCenter);
+		}
+		if (HUDPackage.CrosshairTop)
+		{
+			DrawCrosshair(HUDPackage.CrosshairTop, ViewportCenter);
+		}
+		if (HUDPackage.CrosshairBottom)
+		{
+			DrawCrosshair(HUDPackage.CrosshairBottom, ViewportCenter);
+		}
+		if (HUDPackage.CrosshairLeft)
+		{
+			DrawCrosshair(HUDPackage.CrosshairLeft, ViewportCenter);
+		}
+		if (HUDPackage.CrosshairRight)
+		{
+			DrawCrosshair(HUDPackage.CrosshairRight, ViewportCenter);
+		}
+	}
+}
+
+void ABlasterHUD::DrawCrosshair(UTexture2D* Texture, const FVector2D& ViewportCenter)
+{
+	const float TextureWidth = Texture->GetSizeX();
+	const float TextureHeight = Texture->GetSizeY();
+	const FVector2D TextureDrawPoint(
+		ViewportCenter.X - (TextureWidth / 2.f),
+		ViewportCenter.Y - (TextureHeight / 2.f)
+	);
+	UE_LOG(LogTemp, Display, TEXT("Texture draw point for %s: %f, %f"), *Texture->GetName(), TextureDrawPoint.X,
+	       TextureDrawPoint.Y);
+	DrawTexture(Texture, TextureDrawPoint.X, TextureDrawPoint.Y, TextureWidth, TextureHeight, 0.f, 0.f, 1.f, 1.f);
 }

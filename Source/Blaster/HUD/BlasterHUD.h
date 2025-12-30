@@ -6,6 +6,9 @@
 #include "GameFramework/HUD.h"
 #include "BlasterHUD.generated.h"
 
+/*
+ * A struct with all crosshair positions.
+ */
 USTRUCT(BlueprintType)
 struct FHUDPackage
 {
@@ -35,6 +38,7 @@ public:
 
 private:
 	FHUDPackage HUDPackage;
+	void DrawCrosshair(UTexture2D* Texture, const FVector2D& ViewportCenter);
 
 public:
 	FORCEINLINE void SetHudPackage(const FHUDPackage& HudPackage) { HUDPackage = HudPackage; }
