@@ -38,6 +38,23 @@ public:
 	virtual void Fire(const FVector& HitTarget);
 
 	void SetWeaponState(EWeaponState NewState);
+	/*
+	* Textures for the weapon crosshairs.
+	*/
+	UPROPERTY(EditDefaultsOnly, Category=Crosshairs)
+	TObjectPtr<UTexture2D> CrosshairsCenter;
+	
+	UPROPERTY(EditDefaultsOnly, Category=Crosshairs)
+	TObjectPtr<UTexture2D> CrosshairsLeft;
+	
+	UPROPERTY(EditDefaultsOnly, Category=Crosshairs)
+	TObjectPtr<UTexture2D> CrosshairsRight;
+	
+	UPROPERTY(EditDefaultsOnly, Category=Crosshairs)
+	TObjectPtr<UTexture2D> CrosshairsTop;
+	
+	UPROPERTY(EditDefaultsOnly, Category=Crosshairs)
+	TObjectPtr<UTexture2D> CrosshairsBottom;
 
 protected:
 	virtual void BeginPlay() override;
@@ -75,7 +92,7 @@ private:
 	
 	UFUNCTION()
 	void OnRep_WeaponState();
-
+	
 public:
 	FORCEINLINE USphereComponent* GetAreaSphere() const { return AreaSphere; }
 	FORCEINLINE USkeletalMeshComponent* GetMesh() const { return WeaponMesh; }
