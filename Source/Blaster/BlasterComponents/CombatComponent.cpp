@@ -3,6 +3,8 @@
 
 #include "CombatComponent.h"
 #include "Blaster/Character/BlasterCharacter.h"
+#include "Blaster/HUD/BlasterHUD.h"
+#include "Blaster/PlayerController/BlasterPlayerController.h"
 #include "Blaster/Weapon/Weapon.h"
 #include "Components/SkeletalMeshComponent.h"
 #include "Engine/SkeletalMeshSocket.h"
@@ -28,6 +30,14 @@ void UCombatComponent::BeginPlay()
 	{
 		Character->GetCharacterMovement()->MaxWalkSpeed = BaseWalkSpeed;
 	}
+}
+
+void UCombatComponent::TickComponent(float DeltaTime, ELevelTick TickType,
+                                     FActorComponentTickFunction* ThisTickFunction)
+{
+	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
+
+	SetHUDCrosshairs(DeltaTime);
 }
 
 void UCombatComponent::GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const
@@ -112,8 +122,35 @@ void UCombatComponent::TraceUnderCrosshairs(FHitResult& TraceHitResult)
 			TraceHitResult.ImpactPoint = End;
 		}
 
-		DrawDebugSphere(GetWorld(), TraceHitResult.ImpactPoint, 12.f, 12, FColor::Red,true);
+		DrawDebugSphere(GetWorld(), TraceHitResult.ImpactPoint, 12.f, 12, FColor::Red, true);
 	}
+}
+
+void UCombatComponent::SetHUDCrosshairs(float DeltaTime)
+{
+	if (!Character || !Character->Controller) return;
+
+	if (!Controller)
+	{
+		Controller = Cast<ABlasterPlayerController>(Character->GetController());
+	}
+
+	if (!HUD)
+	{
+		HUD = Cast<ABlasterHUD>(Controller->GetHUD());
+	}
+	
+	FHUDPackage HUDPackage;
+	if (EquippedWeapon)
+	{
+		HUDPackage.CrosshairCenter = EquippedWeapon->CrosshairsCenter;
+		HUDPackage.CrosshairBottom = EquippedWeapon->CrosshairsBottom;
+		HUDPackage.CrosshairTop = EquippedWeapon->CrosshairsTop;
+		HUDPackage.CrosshairLeft = EquippedWeapon->CrosshairsLeft;
+		HUDPackage.CrosshairRight = EquippedWeapon->CrosshairsRight;
+	}
+	// Else case should set every field to nullptr, that way HUD will not draw anything.
+	HUD->SetHudPackage(HUDPackage);
 }
 
 void UCombatComponent::ServerFire_Implementation(const FVector_NetQuantize& TraceHitTarget)
@@ -130,12 +167,6 @@ void UCombatComponent::MulticastFire_Implementation(const FVector_NetQuantize& T
 		Character->PlayFireMontage(bIsAiming);
 		EquippedWeapon->Fire(TraceHitTarget);
 	}
-}
-
-void UCombatComponent::TickComponent(float DeltaTime, ELevelTick TickType,
-                                     FActorComponentTickFunction* ThisTickFunction)
-{
-	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 }
 
 void UCombatComponent::EquipWeapon(AWeapon* WeaponToEquip)

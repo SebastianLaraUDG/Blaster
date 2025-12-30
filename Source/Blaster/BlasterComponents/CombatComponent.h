@@ -6,6 +6,8 @@
 #include "Components/ActorComponent.h"
 #include "CombatComponent.generated.h"
 
+class ABlasterHUD;
+class ABlasterPlayerController;
 class AWeapon;
 class ABlasterCharacter;
 
@@ -44,9 +46,13 @@ protected:
 	void MulticastFire(const FVector_NetQuantize& TraceHitTarget);
 
 	void TraceUnderCrosshairs(FHitResult& TraceHitResult);
+	
+	void SetHUDCrosshairs(float DeltaTime);
 
 private:
 	TObjectPtr<ABlasterCharacter> Character;
+	TObjectPtr<ABlasterPlayerController> Controller;
+	TObjectPtr<ABlasterHUD> HUD;
 
 	// Hand Socket Name.
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta =(AllowPrivateAccess = true))
