@@ -139,7 +139,7 @@ void UCombatComponent::SetHUDCrosshairs(float DeltaTime)
 	{
 		HUD = Cast<ABlasterHUD>(Controller->GetHUD());
 	}
-	
+
 	FHUDPackage HUDPackage;
 	if (EquippedWeapon)
 	{
@@ -150,6 +150,24 @@ void UCombatComponent::SetHUDCrosshairs(float DeltaTime)
 		HUDPackage.CrosshairRight = EquippedWeapon->CrosshairsRight;
 	}
 	// Else case should set every field to nullptr, that way HUD will not draw anything.
+
+	// Calculate crosshair spread (including jump).
+	const FVector2D WalkSpeedRange(0.f, Character->GetCharacterMovement()->MaxWalkSpeed);
+	const FVector2D VelocityMultiplierRange(0.f, 1.f);
+	FVector Velocity = Character->GetVelocity();
+	Velocity.Z = 0.f;
+	CrosshairVelocityFactor = FMath::GetMappedRangeValueClamped(WalkSpeedRange, VelocityMultiplierRange,
+	                                                            Velocity.Size());
+	if (Character->GetCharacterMovement()->IsFalling())
+	{
+		CrosshairInAirFactor = FMath::FInterpTo(CrosshairInAirFactor, 2.25f, DeltaTime, 2.25f); // TODO: interp speed and Target to variable?
+	}
+	else
+	{
+		CrosshairInAirFactor = FMath::FInterpTo(CrosshairInAirFactor, 0.f, DeltaTime, 30.f); // Interpolate very quickly when landing.
+	}
+	HUDPackage.CrosshairSpread = CrosshairVelocityFactor + CrosshairInAirFactor;
+
 	HUD->SetHudPackage(HUDPackage);
 }
 

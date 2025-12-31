@@ -75,4 +75,11 @@ private:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = true))
 	float TraceLength = 100000.f;
+	
+	/*
+	 * HUD and crosshairs.
+	 */
+	
+	float CrosshairVelocityFactor;
+	float CrosshairInAirFactor;
 };
