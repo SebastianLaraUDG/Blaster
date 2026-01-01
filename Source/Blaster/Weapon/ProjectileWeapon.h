@@ -16,6 +16,7 @@ class BLASTER_API AProjectileWeapon : public AWeapon
 	GENERATED_BODY()
 	
 public:
+	/* Spawn projectile at specified socket and with a rotation that matches the end of the trace hit.*/
 	virtual void Fire(const FVector& HitTarget) override;
 	
 private:
