@@ -72,6 +72,33 @@ void UBlasterAnimInstance::NativeUpdateAnimation(const float DeltaSeconds)
 		BlasterCharacter->GetMesh()->TransformToBoneSpace(RightHandBoneName, LeftHandTransform.GetLocation(),
 		                                                  FRotator::ZeroRotator, OutPosition, OutRotation);
 		LeftHandTransform.SetLocation(OutPosition);
-		LeftHandTransform.SetRotation(FQuat(OutRotation));		
+		LeftHandTransform.SetRotation(FQuat(OutRotation));
+
+		// Calculate a rotation to align hand and weapon more precisely to
+		// aiming point (only locally to avoid consuming bandwidth unnecessarily).
+		if (BlasterCharacter->IsLocallyControlled())
+		{
+			bLocallyControlled = true;
+			const FTransform RightHandTransform = BlasterCharacter->GetMesh()->GetSocketTransform(
+				FName("RightHand"), RTS_World);
+			RightHandRotation = UKismetMathLibrary::FindLookAtRotation(BlasterCharacter->GetHitTarget(),RightHandTransform.GetLocation());
+				/* UKismetMathLibrary::FindLookAtRotation(RightHandTransform.GetLocation(),
+			                                                           RightHandTransform.GetLocation() + (
+				                                                           RightHandTransform.GetLocation() -
+				                                                           BlasterCharacter->GetHitTarget())
+
+			);
+			*/
+			
+			FTransform MuzzleTipTransform = EquippedWeapon->GetMesh()->GetSocketTransform(
+				FName("MuzzleFlash"), RTS_World);
+			FVector MuzzleX(FRotationMatrix(MuzzleTipTransform.GetRotation().Rotator()).GetUnitAxis(EAxis::X));
+			// A donde mira la boquilla del arma.
+			DrawDebugLine(GetWorld(), MuzzleTipTransform.GetLocation(),
+			              MuzzleTipTransform.GetLocation() + MuzzleX * 1000.f, FColor::Red);
+			// Donde impacta el trace (centro del crosshair).
+			DrawDebugLine(GetWorld(), MuzzleTipTransform.GetLocation(), BlasterCharacter->GetHitTarget(),
+			              FColor::Purple);
+		}
 	}
 }

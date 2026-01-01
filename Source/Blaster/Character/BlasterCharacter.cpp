@@ -343,3 +343,8 @@ AWeapon* ABlasterCharacter::GetEquippedWeapon() const
 {
 	return CombatComponent ? CombatComponent->EquippedWeapon : nullptr;
 }
+
+FVector ABlasterCharacter::GetHitTarget() const
+{
+	return CombatComponent ? CombatComponent->HitTarget : FVector();
+}
