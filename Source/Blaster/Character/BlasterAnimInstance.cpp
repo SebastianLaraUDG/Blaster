@@ -81,24 +81,25 @@ void UBlasterAnimInstance::NativeUpdateAnimation(const float DeltaSeconds)
 			bLocallyControlled = true;
 			const FTransform RightHandTransform = BlasterCharacter->GetMesh()->GetSocketTransform(
 				FName("RightHand"), RTS_World);
-			RightHandRotation = UKismetMathLibrary::FindLookAtRotation(BlasterCharacter->GetHitTarget(),RightHandTransform.GetLocation());
-				/* UKismetMathLibrary::FindLookAtRotation(RightHandTransform.GetLocation(),
-			                                                           RightHandTransform.GetLocation() + (
-				                                                           RightHandTransform.GetLocation() -
-				                                                           BlasterCharacter->GetHitTarget())
-
-			);
-			*/
 			
-			FTransform MuzzleTipTransform = EquippedWeapon->GetMesh()->GetSocketTransform(
-				FName("MuzzleFlash"), RTS_World);
-			FVector MuzzleX(FRotationMatrix(MuzzleTipTransform.GetRotation().Rotator()).GetUnitAxis(EAxis::X));
-			// A donde mira la boquilla del arma.
+/*
+ * Hand bone rotation to match weapon muzzle flash with hit target. DISCARDED.
+ * 2 Solutions were found: 
+ * First one actually rotated the weapon to look at the hit target but right hand was wrongly rotated so it looked broken.
+ * The second (this was the chosen one) was that the weapon will not match the hit target but the hand will look normal.
+ * 
+			RightHandRotation = UKismetMathLibrary::FindLookAtRotation(RightHandTransform.GetLocation(), BlasterCharacter->GetHitTarget());
+			
+			const FTransform MuzzleTipTransform = EquippedWeapon->GetMesh()->GetSocketTransform(FName("MuzzleFlash"), RTS_World);
+			const FVector MuzzleX(FRotationMatrix(MuzzleTipTransform.GetRotation().Rotator()).GetUnitAxis(EAxis::X));			
+			
+			// The direction muzzle flash is facing.
 			DrawDebugLine(GetWorld(), MuzzleTipTransform.GetLocation(),
-			              MuzzleTipTransform.GetLocation() + MuzzleX * 1000.f, FColor::Red);
-			// Donde impacta el trace (centro del crosshair).
+			              MuzzleTipTransform.GetLocation() + MuzzleX * 1000000.f, FColor::Red);
+			// The trace impact location (center of the viewport).
 			DrawDebugLine(GetWorld(), MuzzleTipTransform.GetLocation(), BlasterCharacter->GetHitTarget(),
 			              FColor::Purple);
+*/
 		}
 	}
 }
