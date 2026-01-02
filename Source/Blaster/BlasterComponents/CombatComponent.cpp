@@ -2,16 +2,17 @@
 
 
 #include "CombatComponent.h"
+
 #include "Blaster/Character/BlasterCharacter.h"
 #include "Blaster/HUD/BlasterHUD.h"
 #include "Blaster/PlayerController/BlasterPlayerController.h"
 #include "Blaster/Weapon/Weapon.h"
+#include "Camera/CameraComponent.h"
 #include "Components/SkeletalMeshComponent.h"
 #include "Engine/SkeletalMeshSocket.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "Net/UnrealNetwork.h"
-
 
 UCombatComponent::UCombatComponent()
 {
@@ -28,7 +29,14 @@ void UCombatComponent::BeginPlay()
 
 	if (Character)
 	{
+		// Setup character base walk speed according to this component value.
 		Character->GetCharacterMovement()->MaxWalkSpeed = BaseWalkSpeed;
+		// Save Default Camera FOV.
+		if (Character->GetCamera())
+		{
+			DefaultFOV = Character->GetCamera()->FieldOfView;
+			CurrentFOV = DefaultFOV;
+		}
 	}
 }
 
@@ -36,13 +44,14 @@ void UCombatComponent::TickComponent(float DeltaTime, ELevelTick TickType,
                                      FActorComponentTickFunction* ThisTickFunction)
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
-
-	SetHUDCrosshairs(DeltaTime);
+	
 	if (Character && Character->IsLocallyControlled())
 	{
 		FHitResult HitResult;
 		TraceUnderCrosshairs(HitResult);
 		HitTarget = HitResult.ImpactPoint;
+		SetHUDCrosshairs(DeltaTime);
+		InterpFOV(DeltaTime);
 	}
 }
 
@@ -175,6 +184,29 @@ void UCombatComponent::SetHUDCrosshairs(float DeltaTime)
 	HUDPackage.CrosshairSpread = CrosshairVelocityFactor + CrosshairInAirFactor;
 
 	HUD->SetHudPackage(HUDPackage);
+}
+
+void UCombatComponent::InterpFOV(const float& DeltaTime)
+{
+	/*
+	 * NOTE: to avoid the blur effect when aiming at large or very short distances
+	 * you must set the Camera's Depth of Field: Focal Distance and the Aperture (F-stop) 
+	 * attributes to large values.
+	 */
+	if (!EquippedWeapon) return;
+	if (!Character || !Character->GetCamera()) return;
+	
+	// Zoom in.
+	if (bIsAiming)
+	{
+		CurrentFOV = FMath::FInterpTo(CurrentFOV,EquippedWeapon->ZoomedFOV, DeltaTime, EquippedWeapon->ZoomInterpSpeed);
+	}
+	// Stopped aiming. Go back to default zoom.
+	else
+	{
+		CurrentFOV = FMath::FInterpTo(CurrentFOV, DefaultFOV, DeltaTime, ZoomInterpSpeed);
+	}
+	Character->GetCamera()->SetFieldOfView(CurrentFOV);
 }
 
 void UCombatComponent::ServerFire_Implementation(const FVector_NetQuantize& TraceHitTarget)

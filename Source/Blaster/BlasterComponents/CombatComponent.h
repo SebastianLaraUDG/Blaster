@@ -84,4 +84,21 @@ private:
 	float CrosshairInAirFactor;
 	
 	FVector HitTarget;
+	
+	/*
+	 * Aiming and FOV
+	 */
+	
+	// Field of view when not aiming; set to the camera's base FOV in BeginPlay.
+	float DefaultFOV;
+	
+	float CurrentFOV;
+	
+	/* The speed to interp to zoom out. (If you want to change the zoom in speed,
+	 you must change the ZoomInterpSpeed variable of the Weapon class.
+	 */
+	UPROPERTY(EditAnywhere, Category = Combat)
+	float ZoomInterpSpeed = 20.f;
+	
+	void InterpFOV(const float& DeltaTime);
 };
