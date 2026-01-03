@@ -44,7 +44,7 @@ void UCombatComponent::TickComponent(float DeltaTime, ELevelTick TickType,
                                      FActorComponentTickFunction* ThisTickFunction)
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
-	
+
 	if (Character && Character->IsLocallyControlled())
 	{
 		FHitResult HitResult;
@@ -108,6 +108,11 @@ void UCombatComponent::FireButtonPressed(bool bPressed)
 		FHitResult HitResult;
 		TraceUnderCrosshairs(HitResult);
 		ServerFire(HitResult.ImpactPoint);
+
+		if (EquippedWeapon)
+		{
+			CrosshairShootingFactor += CrosshairsShootingFactorIncrement;
+		}
 	}
 }
 
@@ -175,13 +180,29 @@ void UCombatComponent::SetHUDCrosshairs(float DeltaTime)
 	                                                            Velocity.Size());
 	if (Character->GetCharacterMovement()->IsFalling())
 	{
-		CrosshairInAirFactor = FMath::FInterpTo(CrosshairInAirFactor, 2.25f, DeltaTime, 2.25f); // TODO: interp speed and Target to variable?
+		CrosshairInAirFactor = FMath::FInterpTo(CrosshairInAirFactor, 2.25f, DeltaTime, 2.25f);
+		// TODO: interp speed and Target to variable?
 	}
 	else
 	{
-		CrosshairInAirFactor = FMath::FInterpTo(CrosshairInAirFactor, 0.f, DeltaTime, 30.f); // Interpolate very quickly when landing.
+		CrosshairInAirFactor = FMath::FInterpTo(CrosshairInAirFactor, 0.f, DeltaTime, 30.f);
+		// Interpolate very quickly when landing.
 	}
-	HUDPackage.CrosshairSpread = CrosshairVelocityFactor + CrosshairInAirFactor;
+	// Include aiming factor.
+	if (bIsAiming)
+	{
+		CrosshairAimFactor = FMath::FInterpTo(CrosshairAimFactor, CrosshairsDisplacementWhileAiming, DeltaTime, 30.f /*TODO: convert to param? */);
+	}
+	else
+	{
+		CrosshairAimFactor = FMath::FInterpTo(CrosshairAimFactor, 0.f, DeltaTime, 30.f);
+	}
+	// Shooting factor should always interpolate back to zero.
+	CrosshairShootingFactor = FMath::FInterpTo(CrosshairShootingFactor, 0.f, DeltaTime, CrosshairShootingFactorBackToZeroInterpSpeed);
+
+	HUDPackage.CrosshairSpread = 0.5f /* Hard coded value to spread crosshairs a little by default.  TODO: convert to param.*/ +
+		CrosshairVelocityFactor + CrosshairInAirFactor + CrosshairAimFactor +
+		CrosshairShootingFactor;
 
 	HUD->SetHudPackage(HUDPackage);
 }
@@ -195,11 +216,12 @@ void UCombatComponent::InterpFOV(const float& DeltaTime)
 	 */
 	if (!EquippedWeapon) return;
 	if (!Character || !Character->GetCamera()) return;
-	
+
 	// Zoom in.
 	if (bIsAiming)
 	{
-		CurrentFOV = FMath::FInterpTo(CurrentFOV,EquippedWeapon->ZoomedFOV, DeltaTime, EquippedWeapon->ZoomInterpSpeed);
+		CurrentFOV = FMath::FInterpTo(CurrentFOV, EquippedWeapon->ZoomedFOV, DeltaTime,
+		                              EquippedWeapon->ZoomInterpSpeed);
 	}
 	// Stopped aiming. Go back to default zoom.
 	else

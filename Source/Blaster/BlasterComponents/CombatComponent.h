@@ -82,6 +82,27 @@ private:
 	
 	float CrosshairVelocityFactor;
 	float CrosshairInAirFactor;
+	float CrosshairAimFactor;
+	float CrosshairShootingFactor;
+	
+	/**
+	 * Increment in crosshairs when shooting. For example a large value like 3 will have a dispersion effect like a heavy automatic gun.
+	 * Note this only increments crossharirs displacement, not bullet trajectory.
+	 */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = true, ClampMin = 0))
+	float CrosshairsShootingFactorIncrement = 0.5f;
+	
+	// The speed at which the crosshairs go back to normal positions.
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = true))
+	float CrosshairShootingFactorBackToZeroInterpSpeed = 20.f;
+	
+	/**
+	 *A negative value will put crosshairs closer to the center while aiming, a positive value while place them away from the center.
+	 * 
+	 * For example, a value to put crosshairs closer to center would be -0.4f.
+	 */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = true))
+	float CrosshairsDisplacementWhileAiming = 0.58f;
 	
 	FVector HitTarget;
 	
