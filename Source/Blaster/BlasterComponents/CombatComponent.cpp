@@ -154,11 +154,13 @@ void UCombatComponent::SetHUDCrosshairs(float DeltaTime)
 	{
 		Controller = Cast<ABlasterPlayerController>(Character->GetController());
 	}
+	if (!Controller) return; // Abort if controller is null. This could still happen due to server travel. TODO: improve readability.
 
 	if (!HUD)
 	{
 		HUD = Cast<ABlasterHUD>(Controller->GetHUD());
 	}
+	if (!HUD) return; // Abort if HUD is null. This could still happen due to server travel.  TODO: improve readability.
 
 	FHUDPackage HUDPackage;
 	if (EquippedWeapon)
