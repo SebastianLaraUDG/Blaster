@@ -81,6 +81,7 @@ void UBlasterAnimInstance::NativeUpdateAnimation(const float DeltaSeconds)
 			bLocallyControlled = true;
 			const FTransform RightHandTransform = BlasterCharacter->GetMesh()->GetSocketTransform(
 				FName("RightHand"), RTS_World);
+			FRotator LookAtRotation = UKismetMathLibrary::FindLookAtRotation(RightHandTransform.GetLocation(), BlasterCharacter->GetHitTarget());
 			
 /*
  * Hand bone rotation to match weapon muzzle flash with hit target. DISCARDED.
@@ -88,7 +89,7 @@ void UBlasterAnimInstance::NativeUpdateAnimation(const float DeltaSeconds)
  * First one actually rotated the weapon to look at the hit target but right hand was wrongly rotated so it looked broken.
  * The second (this was the chosen one) was that the weapon will not match the hit target but the hand will look normal.
  * 
-			RightHandRotation = UKismetMathLibrary::FindLookAtRotation(RightHandTransform.GetLocation(), BlasterCharacter->GetHitTarget());
+			RightHandRotation = FMath::RInterpTo(RightHandRotation, LookAtRotation, DeltaSeconds, 30.f);
 			
 			const FTransform MuzzleTipTransform = EquippedWeapon->GetMesh()->GetSocketTransform(FName("MuzzleFlash"), RTS_World);
 			const FVector MuzzleX(FRotationMatrix(MuzzleTipTransform.GetRotation().Rotator()).GetUnitAxis(EAxis::X));			
