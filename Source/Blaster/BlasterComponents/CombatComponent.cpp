@@ -122,17 +122,25 @@ void UCombatComponent::TraceUnderCrosshairs(FHitResult& TraceHitResult)
 	{
 		GEngine->GameViewport->GetViewportSize(ViewportSize);
 	}
-	FVector2D CrosshairLocation(ViewportSize.X / 2.f, ViewportSize.Y / 2.f);
+	const FVector2D CrosshairLocation(ViewportSize.X / 2.f, ViewportSize.Y / 2.f);
 	FVector CrosshairWorldPosition, CrosshairWorldDirection;
-	bool bScreenToWorld = UGameplayStatics::DeprojectScreenToWorld(
+	const bool bScreenToWorld = UGameplayStatics::DeprojectScreenToWorld(
 		UGameplayStatics::GetPlayerController(this, 0),
 		CrosshairLocation, CrosshairWorldPosition, CrosshairWorldDirection
 	);
 	if (bScreenToWorld)
 	{
 		FVector Start = CrosshairWorldPosition;
+		// Add an offset to Start location. This is because starting the trace from the camera position can
+		// lead to inaccurate shots and hand rotation.
+		if (Character)
+		{
+			const float DistanceToCharacter = (Character->GetActorLocation() - Start).Size();
+			Start += CrosshairWorldDirection * (DistanceToCharacter + 100.f /*A small distance offset. Hardcoded value. you can adjust it.*/);
+			DrawDebugSphere(GetWorld(), Start, 12.f, 12, FColor::Blue, false);
+		}
 
-		FVector End = CrosshairWorldPosition + CrosshairWorldDirection * TraceLength;
+		const FVector End = CrosshairWorldPosition + CrosshairWorldDirection * TraceLength;
 		GetWorld()->LineTraceSingleByChannel(
 			TraceHitResult, Start, End, ECollisionChannel::ECC_Visibility
 		);
@@ -145,14 +153,13 @@ void UCombatComponent::TraceUnderCrosshairs(FHitResult& TraceHitResult)
 		{
 			HUDPackage.CrosshairsColor = FLinearColor::White;
 		}
-		/*
+		
 		if (!TraceHitResult.bBlockingHit)
 		{
 			TraceHitResult.ImpactPoint = End;
 		}
 
 		DrawDebugSphere(GetWorld(), TraceHitResult.ImpactPoint, 12.f, 12, FColor::Red, false);
-		*/
 	}
 }
 

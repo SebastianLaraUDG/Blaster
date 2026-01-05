@@ -15,7 +15,7 @@
 #include "Components/CapsuleComponent.h"
 #include "Kismet/KismetMathLibrary.h"
 #include "BlasterAnimInstance.h"
-
+#include "Blaster/Blaster.h"
 
 ABlasterCharacter::ABlasterCharacter()
 {
@@ -37,8 +37,10 @@ ABlasterCharacter::ABlasterCharacter()
 	// Make sure character can crouch.
 	GetCharacterMovement()->GetNavAgentPropertiesRef().bCanCrouch = true;
 	GetCapsuleComponent()->SetCollisionResponseToChannel(ECC_Camera, ECR_Ignore);
+	GetMesh()->SetCollisionObjectType(ECC_SkeletalMesh);
 	GetMesh()->SetCollisionResponseToChannel(ECC_Camera, ECR_Ignore);
-	GetMesh()->SetCollisionResponseToChannel(ECC_Visibility, ECR_Block); // Block on visibility channel to allow for crosshairs change to red color.
+	GetMesh()->SetCollisionResponseToChannel(ECC_Visibility, ECR_Block);
+	// Block on visibility channel to allow for crosshairs change to red color.
 	GetCharacterMovement()->RotationRate = FRotator(0.f, 850.f, 0.f);
 
 	// Overhead Widget.
@@ -59,6 +61,7 @@ void ABlasterCharacter::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 
 	AimOffset(DeltaTime);
+	HideCharacterIfCameraClose();
 }
 
 void ABlasterCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
@@ -131,6 +134,18 @@ void ABlasterCharacter::PlayFireMontage(bool bAiming)
 	{
 		AnimInstance->Montage_Play(FireWeaponMontage);
 		const FName SectionName = bAiming ? FName("RifleAim") : FName("RifleHip"); // TODO: make variables?
+		AnimInstance->Montage_JumpToSection(SectionName);
+	}
+}
+
+void ABlasterCharacter::PlayHitReactMontage() const
+{
+	if (!CombatComponent || !IsWeaponEquipped()) return;
+
+	if (const auto AnimInstance = GetMesh()->GetAnimInstance(); AnimInstance && HitReactMontage)
+	{
+		AnimInstance->Montage_Play(HitReactMontage);
+		const FName SectionName("FromFront"); // TEMP: add more sections to play here in code.
 		AnimInstance->Montage_JumpToSection(SectionName);
 	}
 }
@@ -293,6 +308,28 @@ void ABlasterCharacter::TurnInPlace(float DeltaTime)
 			// Reset Starting Aim Rotation.
 			StartingAimRotation = FRotator(0.f, GetBaseAimRotation().Yaw, 0.f);
 		}
+	}
+}
+
+void ABlasterCharacter::MulticastHit_Implementation()
+{
+	PlayHitReactMontage();
+}
+
+void ABlasterCharacter::HideCharacterIfCameraClose() const
+{
+	if (!IsLocallyControlled()) return;
+
+	const bool bCameraTooCloseToCharacter = (Camera->GetComponentLocation() - GetActorLocation() ).Size() < CameraThreshold;
+	
+	// In case camera is too close to character, mesh must not be visible.
+	GetMesh()->SetVisibility(!bCameraTooCloseToCharacter);
+	
+	// Weapon has a valid mesh.
+	if (CombatComponent && CombatComponent->EquippedWeapon && CombatComponent->EquippedWeapon->GetMesh())
+	{
+		// In case camera is too close to character, character should not see weapon.
+		CombatComponent->EquippedWeapon->GetMesh()->SetOwnerNoSee(bCameraTooCloseToCharacter);
 	}
 }
 

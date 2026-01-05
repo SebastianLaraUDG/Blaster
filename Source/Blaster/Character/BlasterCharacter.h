@@ -34,6 +34,9 @@ public:
 	virtual void GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const override;
 	virtual void PostInitializeComponents() override;
 	void PlayFireMontage(bool bAiming);
+	
+	UFUNCTION(NetMulticast, Unreliable)
+	void MulticastHit();
 
 protected:
 	virtual void BeginPlay() override;
@@ -55,6 +58,8 @@ protected:
 
 	void AimOffset(float DeltaTime);
 	virtual void Jump() override;
+	
+	void PlayHitReactMontage() const;
 
 private:
 	/* Camera and spring arm*/
@@ -97,6 +102,15 @@ private:
 	
 	UPROPERTY(EditAnywhere, Category = Combat)
 	TObjectPtr<UAnimMontage> FireWeaponMontage;
+	
+	UPROPERTY(EditAnywhere, Category = Combat)
+	TObjectPtr<UAnimMontage> HitReactMontage;
+	
+	void HideCharacterIfCameraClose() const;
+	
+	// Distance from the camera to the player at which character mesh and weapon will be invisible.
+	UPROPERTY(EditAnywhere, Category = Combat, meta = (AllowPrivateAccess = "true"))
+	float CameraThreshold = 200.f;
 
 public:
 	/* Input Temporal aqui. No se si ponerlo en el controller.*/

@@ -7,8 +7,10 @@
 #include "GameFramework/ProjectileMovementComponent.h"
 #include "NiagaraFunctionLibrary.h"
 #include "NiagaraComponent.h"
+#include "Blaster/Character/BlasterCharacter.h"
 #include "Kismet/GameplayStatics.h"
 #include "Sound/SoundCue.h"
+#include "Blaster/Blaster.h"
 
 AProjectile::AProjectile()
 {
@@ -23,6 +25,7 @@ AProjectile::AProjectile()
 	CollisionBox->SetCollisionResponseToAllChannels(ECR_Ignore);
 	CollisionBox->SetCollisionResponseToChannel(ECC_Visibility, ECR_Block);
 	CollisionBox->SetCollisionResponseToChannel(ECC_WorldStatic, ECR_Block);
+	CollisionBox->SetCollisionResponseToChannel(ECC_SkeletalMesh, ECR_Block);
 	// Projectile movement.
 	ProjectileMovement = CreateDefaultSubobject<UProjectileMovementComponent>(TEXT("Projectile Movement Component"));
 	ProjectileMovement->bRotationFollowsVelocity = true;
@@ -53,6 +56,12 @@ void AProjectile::BeginPlay()
 void AProjectile::OnHit(UPrimitiveComponent* HitComp, AActor* HitOther, UPrimitiveComponent* OtherComp,
                         FVector NormalImpulse, const FHitResult& Hit)
 {
+	// TODO: Change so that this script does not use a hard reference.
+	if (const auto BlasterCharacter = Cast<ABlasterCharacter>(HitOther))
+	{
+		BlasterCharacter->MulticastHit();
+	}
+
 	// TODO: Instead of destroying, when implementing object pool, make invisible, disable collision and return to pool.
 	// The downside of doing that is that I will have to implement replication.
 	Destroy();
