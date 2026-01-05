@@ -4,7 +4,6 @@
 #include "CombatComponent.h"
 
 #include "Blaster/Character/BlasterCharacter.h"
-#include "Blaster/HUD/BlasterHUD.h"
 #include "Blaster/PlayerController/BlasterPlayerController.h"
 #include "Blaster/Weapon/Weapon.h"
 #include "Camera/CameraComponent.h"
@@ -137,12 +136,23 @@ void UCombatComponent::TraceUnderCrosshairs(FHitResult& TraceHitResult)
 		GetWorld()->LineTraceSingleByChannel(
 			TraceHitResult, Start, End, ECollisionChannel::ECC_Visibility
 		);
+		// Make crosshairs red if actor interacts with interface. Otherwise, white.
+		if (TraceHitResult.GetActor() && TraceHitResult.GetActor()->Implements<UInteractWithCrosshairsInterface>())
+		{
+			HUDPackage.CrosshairsColor = FLinearColor::Red;
+		}
+		else
+		{
+			HUDPackage.CrosshairsColor = FLinearColor::White;
+		}
+		/*
 		if (!TraceHitResult.bBlockingHit)
 		{
 			TraceHitResult.ImpactPoint = End;
 		}
 
 		DrawDebugSphere(GetWorld(), TraceHitResult.ImpactPoint, 12.f, 12, FColor::Red, false);
+		*/
 	}
 }
 
@@ -161,8 +171,7 @@ void UCombatComponent::SetHUDCrosshairs(float DeltaTime)
 		HUD = Cast<ABlasterHUD>(Controller->GetHUD());
 	}
 	if (!HUD) return; // Abort if HUD is null. This could still happen due to server travel.  TODO: improve readability.
-
-	FHUDPackage HUDPackage;
+	
 	if (EquippedWeapon)
 	{
 		HUDPackage.CrosshairCenter = EquippedWeapon->CrosshairsCenter;

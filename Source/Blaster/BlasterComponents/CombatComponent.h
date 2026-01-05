@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "Blaster/HUD/BlasterHUD.h"
 #include "Components/ActorComponent.h"
 #include "CombatComponent.generated.h"
 
@@ -84,6 +85,8 @@ private:
 	float CrosshairInAirFactor;
 	float CrosshairAimFactor;
 	float CrosshairShootingFactor;
+	
+	FHUDPackage HUDPackage;
 	
 	/**
 	 * Increment in crosshairs when shooting. For example a large value like 3 will have a dispersion effect like a heavy automatic gun.
