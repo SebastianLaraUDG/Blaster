@@ -100,6 +100,9 @@ void UBlasterAnimInstance::NativeUpdateAnimation(const float DeltaSeconds)
 			// The trace impact location (center of the viewport).
 			DrawDebugLine(GetWorld(), MuzzleTipTransform.GetLocation(), BlasterCharacter->GetHitTarget(),
 			              FColor::Purple);
+			              
+ * In case you want to use this, remember you still need to use the transform node in the anim blueprint and set the
+ * rotation param with in World Space and Replace Existing options for the right hand bone (or the one you want to modify).
 */
 		}
 	}
