@@ -39,6 +39,8 @@ protected:
 	void OnRep_EquippedWeapon();
 
 	void FireButtonPressed(bool bPressed);
+	
+	void Fire();
 
 	UFUNCTION(Server, Reliable)
 	void ServerFire(const FVector_NetQuantize& TraceHitTarget);
@@ -140,6 +142,10 @@ private:
 	 * Automatic fire
 	 */
 	FTimerHandle FireTimer;
+	
+	bool bCanFire = true;
+	void StartFireTimer();
+	void FireTimerFinished();
 	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Combat, meta = (AllowPrivateAccess = true))
 	float FireDelay;

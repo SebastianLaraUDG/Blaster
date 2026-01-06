@@ -98,20 +98,63 @@ void UCombatComponent::OnRep_EquippedWeapon()
 	}
 }
 
+
+
 void UCombatComponent::FireButtonPressed(bool bPressed)
 {
 	bFireButtonPressed = bPressed;
 
-	if (bFireButtonPressed)
+	if (bFireButtonPressed && EquippedWeapon)
 	{
-		FHitResult HitResult;
-		TraceUnderCrosshairs(HitResult);
-		ServerFire(HitResult.ImpactPoint);
+	  	Fire();
+	}
+}
 
-		if (EquippedWeapon)
-		{
-			CrosshairShootingFactor += CrosshairsShootingFactorIncrement;
-		}
+void UCombatComponent::Fire()
+{
+	if (!bCanFire) return;
+	
+	bCanFire = false;
+	ServerFire(HitTarget);
+	if (EquippedWeapon)
+	{
+		CrosshairShootingFactor += CrosshairsShootingFactorIncrement;
+	}
+	StartFireTimer();
+}
+
+void UCombatComponent::StartFireTimer()
+{
+	if (!EquippedWeapon || !Character) return;
+
+	Character->GetWorldTimerManager().SetTimer(
+		FireTimer, this, &ThisClass::FireTimerFinished, EquippedWeapon->FireDelay
+	);
+}
+
+void UCombatComponent::FireTimerFinished()
+{
+	if (!EquippedWeapon) return;
+	bCanFire = true;
+	if (bFireButtonPressed && EquippedWeapon->bAutomatic)
+	{
+		Fire();
+	}
+}
+
+void UCombatComponent::ServerFire_Implementation(const FVector_NetQuantize& TraceHitTarget)
+{
+	MulticastFire(TraceHitTarget);
+}
+
+void UCombatComponent::MulticastFire_Implementation(const FVector_NetQuantize& TraceHitTarget)
+{
+	if (!EquippedWeapon) return;
+	UE_LOG(LogTemp, Display, TEXT("FIRE BUTTON PRESSED: %d"), bFireButtonPressed);
+	if (Character)
+	{
+		Character->PlayFireMontage(bIsAiming);
+		EquippedWeapon->Fire(TraceHitTarget);
 	}
 }
 
@@ -260,22 +303,6 @@ void UCombatComponent::InterpFOV(const float& DeltaTime)
 		CurrentFOV = FMath::FInterpTo(CurrentFOV, DefaultFOV, DeltaTime, ZoomInterpSpeed);
 	}
 	Character->GetCamera()->SetFieldOfView(CurrentFOV);
-}
-
-void UCombatComponent::ServerFire_Implementation(const FVector_NetQuantize& TraceHitTarget)
-{
-	MulticastFire(TraceHitTarget);
-}
-
-void UCombatComponent::MulticastFire_Implementation(const FVector_NetQuantize& TraceHitTarget)
-{
-	if (!EquippedWeapon) return;
-	UE_LOG(LogTemp, Display, TEXT("FIRE BUTTON PRESSED: %d"), bFireButtonPressed);
-	if (Character)
-	{
-		Character->PlayFireMontage(bIsAiming);
-		EquippedWeapon->Fire(TraceHitTarget);
-	}
 }
 
 void UCombatComponent::EquipWeapon(AWeapon* WeaponToEquip)

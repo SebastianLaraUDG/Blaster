@@ -124,7 +124,7 @@ void ABlasterCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCo
 	// Bind weapon combat.
 	EnhancedInput->BindAction(AimInputAction, ETriggerEvent::Started, this, &ThisClass::AimStarted);
 	EnhancedInput->BindAction(AimInputAction, ETriggerEvent::Completed, this, &ThisClass::AimStopped);
-	EnhancedInput->BindAction(FireInputAction, ETriggerEvent::Triggered, this, &ThisClass::FireWeaponPressed);
+	EnhancedInput->BindAction(FireInputAction, ETriggerEvent::/*Triggered*/Started, this, &ThisClass::FireWeaponPressed);
 	EnhancedInput->BindAction(FireInputAction, ETriggerEvent::Completed, this, &ThisClass::FireWeaponReleased);
 }
 
@@ -248,7 +248,7 @@ void ABlasterCharacter::FireWeaponPressed()
 	if (CombatComponent)
 	{
 		CombatComponent->FireButtonPressed(true);
-		UE_LOG(LogTemp, Display, TEXT("Character is shooting."));
+		UE_LOG(LogTemp, Display, TEXT("Character started trying to shoot."));
 	}
 }
 
@@ -334,7 +334,7 @@ void ABlasterCharacter::SimProxiesTurn()
 	// Delta Yaw rotation between frames.
 	const float ProxyYaw = UKismetMathLibrary::NormalizedDeltaRotator(ProxyRotation, ProxyRotationLastFrame).Yaw;
 	
-	UE_LOG(LogTemp, Display, TEXT("Proxy Yaw: %f"), ProxyYaw);
+	// UE_LOG(LogTemp, Display, TEXT("Proxy Yaw: %f"), ProxyYaw);
 	
 	// Delta rotation exceeds threshold.
 	if (FMath::Abs(ProxyYaw) > TurnThreshold)
