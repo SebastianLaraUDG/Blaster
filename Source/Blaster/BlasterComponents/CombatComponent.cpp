@@ -148,10 +148,12 @@ void UCombatComponent::TraceUnderCrosshairs(FHitResult& TraceHitResult)
 		if (TraceHitResult.GetActor() && TraceHitResult.GetActor()->Implements<UInteractWithCrosshairsInterface>())
 		{
 			HUDPackage.CrosshairsColor = FLinearColor::Red;
+			bAimingAtEnemy = true;
 		}
 		else
 		{
 			HUDPackage.CrosshairsColor = FLinearColor::White;
+			bAimingAtEnemy = false;
 		}
 		
 		if (!TraceHitResult.bBlockingHit)
@@ -203,8 +205,8 @@ void UCombatComponent::SetHUDCrosshairs(float DeltaTime)
 	}
 	else
 	{
-		CrosshairInAirFactor = FMath::FInterpTo(CrosshairInAirFactor, 0.f, DeltaTime, 30.f);
 		// Interpolate very quickly when landing.
+		CrosshairInAirFactor = FMath::FInterpTo(CrosshairInAirFactor, 0.f, DeltaTime, 30.f);
 	}
 	// Include aiming factor.
 	if (bIsAiming)
@@ -215,13 +217,24 @@ void UCombatComponent::SetHUDCrosshairs(float DeltaTime)
 	{
 		CrosshairAimFactor = FMath::FInterpTo(CrosshairAimFactor, 0.f, DeltaTime, 30.f);
 	}
+	// Shrink crosshairs when aiming at enemies.
+	if (bAimingAtEnemy)
+	{
+		CrosshairEnemyFactor = FMath::FInterpTo(CrosshairEnemyFactor, AimAtEnemyShrinkFactor, DeltaTime, 30.f);
+	}
+	else
+	{
+		CrosshairEnemyFactor = FMath::FInterpTo(CrosshairEnemyFactor, 0.0f, DeltaTime, 30.f);
+	}
+	
 	// Shooting factor should always interpolate back to zero.
 	CrosshairShootingFactor = FMath::FInterpTo(CrosshairShootingFactor, 0.f, DeltaTime, CrosshairShootingFactorBackToZeroInterpSpeed);
 
 	HUDPackage.CrosshairSpread = 0.5f /* Hard coded value to spread crosshairs a little by default.  TODO: convert to param.*/ +
 		CrosshairVelocityFactor + CrosshairInAirFactor + CrosshairAimFactor +
-		CrosshairShootingFactor;
-
+		CrosshairShootingFactor - CrosshairEnemyFactor;
+	
+	
 	HUD->SetHudPackage(HUDPackage);
 }
 

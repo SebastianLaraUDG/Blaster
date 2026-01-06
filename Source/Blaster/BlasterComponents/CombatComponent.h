@@ -85,12 +85,22 @@ private:
 	float CrosshairInAirFactor;
 	float CrosshairAimFactor;
 	float CrosshairShootingFactor;
+	float CrosshairEnemyFactor;
+	bool bAimingAtEnemy;
+	/*
+	 * Amount to shrink crosshairs while aiming at enemies.
+	 * Small value means shrink crosshairs a bit and a high value shrinks crosshairs a lot.
+	 * Be careful with very high values.
+	 */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = true, ClampMin = 0.1, ClampMax = 2.0))
+	float AimAtEnemyShrinkFactor = 0.6f;
+	
 	
 	FHUDPackage HUDPackage;
 	
 	/**
 	 * Increment in crosshairs when shooting. For example a large value like 3 will have a dispersion effect like a heavy automatic gun.
-	 * Note this only increments crossharirs displacement, not bullet trajectory.
+	 * Note this only increments crosshairs displacement, not bullet trajectory.
 	 */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = true, ClampMin = 0))
 	float CrosshairsShootingFactorIncrement = 0.5f;
@@ -125,4 +135,12 @@ private:
 	float ZoomInterpSpeed = 20.f;
 	
 	void InterpFOV(const float& DeltaTime);
+	
+	/* 
+	 * Automatic fire
+	 */
+	FTimerHandle FireTimer;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Combat, meta = (AllowPrivateAccess = true))
+	float FireDelay;
 };
