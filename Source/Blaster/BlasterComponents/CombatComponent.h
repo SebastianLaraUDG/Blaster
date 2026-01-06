@@ -79,6 +79,10 @@ private:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = true))
 	float TraceLength = 100000.f;
 	
+	// An offset in front of the start of the trace to avoid collision detection problems (in centimeters).
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = true, ClampMin = 0.1f, ClampMax = 1000.f, Units = "Centimeters"))
+	float StartOfTraceOffset = 20.f;
+	
 	/*
 	 * HUD and crosshairs.
 	 */

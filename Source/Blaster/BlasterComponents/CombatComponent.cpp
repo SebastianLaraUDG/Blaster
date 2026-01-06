@@ -179,7 +179,7 @@ void UCombatComponent::TraceUnderCrosshairs(FHitResult& TraceHitResult)
 		if (Character)
 		{
 			const float DistanceToCharacter = (Character->GetActorLocation() - Start).Size();
-			Start += CrosshairWorldDirection * (DistanceToCharacter + 100.f /*A small distance offset. Hardcoded value. you can adjust it.*/);
+			Start += CrosshairWorldDirection * (DistanceToCharacter + StartOfTraceOffset);
 			DrawDebugSphere(GetWorld(), Start, 12.f, 12, FColor::Blue, false);
 		}
 
