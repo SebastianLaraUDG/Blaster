@@ -41,6 +41,8 @@ void UBlasterAnimInstance::NativeUpdateAnimation(const float DeltaSeconds)
 	bIsAiming = BlasterCharacter->IsAiming();
 	// Turning in place.
 	TurningInPlace = BlasterCharacter->GetTurningInPlace();
+	// Rotate root bone.
+	bRotateRootBone = BlasterCharacter->ShouldRotateRootBone();
 
 	// Offset Yaw for strafing.
 	FRotator AimRotation = BlasterCharacter->GetBaseAimRotation();

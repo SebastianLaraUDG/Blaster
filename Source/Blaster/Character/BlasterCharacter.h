@@ -37,6 +37,8 @@ public:
 	
 	UFUNCTION(NetMulticast, Unreliable)
 	void MulticastHit();
+	
+	virtual void OnRep_ReplicatedMovement() override;
 
 protected:
 	virtual void BeginPlay() override;
@@ -55,8 +57,15 @@ protected:
 	// Firing weapon.
 	void FireWeaponPressed();
 	void FireWeaponReleased();
+	// Ignores velocity in Z axis.
+	float CalculateSpeed() const;
 
+	// Calculate aim offsets (yaw and pitch).
 	void AimOffset(float DeltaTime);
+	// Considers network compression and sets pitch to an appropriate value. 
+	void CalculateAO_Pitch();
+	// Turn for Simulated Proxies only.
+	void SimProxiesTurn();
 	virtual void Jump() override;
 	
 	void PlayHitReactMontage() const;
@@ -111,6 +120,20 @@ private:
 	// Distance from the camera to the player at which character mesh and weapon will be invisible.
 	UPROPERTY(EditAnywhere, Category = Combat, meta = (AllowPrivateAccess = "true"))
 	float CameraThreshold = 200.f;
+	
+	bool bRotateRootBone;
+	
+	/* Higher threshold value for less Turning in place animation repetitions. */
+	UPROPERTY(EditAnywhere, Category = "Movement|Replication", meta = (AllowPrivateAccess = "true"))
+	float TurnThreshold = 0.5f;
+	
+	FRotator ProxyRotationLastFrame;
+	FRotator ProxyRotation;
+	float TimeSinceLastMovementReplication;
+	
+	UPROPERTY(EditAnywhere, Category = "Movement|Replication", meta = (AllowPrivateAccess = "true"))
+	float TimeForMovementReplicationUpdate = 0.25f; // TODO: I don't like this name. Maybe I could rename it for something more appropriate.
+	
 
 public:
 	/* Input Temporal aqui. No se si ponerlo en el controller.*/
@@ -158,4 +181,5 @@ public:
 	FORCEINLINE ETurningInPlace GetTurningInPlace() const { return TurningInPlace; }
 	FVector GetHitTarget() const;
 	FORCEINLINE UCameraComponent* GetCamera() const { return Camera; }
+	FORCEINLINE bool ShouldRotateRootBone() const { return bRotateRootBone; }
 };

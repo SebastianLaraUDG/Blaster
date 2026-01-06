@@ -60,7 +60,28 @@ void ABlasterCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-	AimOffset(DeltaTime);
+	/*
+	 * Aim offsets for both local players and simulated proxies.
+	 * 
+	 */
+	
+	// Only autonomous and authority proxies controlled by a player will calculate aim offsets.
+	if (GetLocalRole() > ROLE_SimulatedProxy && IsLocallyControlled())
+	{
+		AimOffset(DeltaTime);
+	}
+	// Simulated proxies will update their Aim offsets every certain amount of time determined regardless of whether they moved or not.
+	else
+	{
+		TimeSinceLastMovementReplication += DeltaTime;
+		if (TimeSinceLastMovementReplication > TimeForMovementReplicationUpdate)
+		{
+			OnRep_ReplicatedMovement();
+		}
+		CalculateAO_Pitch();
+	}
+	
+	
 	HideCharacterIfCameraClose();
 }
 
@@ -150,6 +171,13 @@ void ABlasterCharacter::PlayHitReactMontage() const
 	}
 }
 
+void ABlasterCharacter::OnRep_ReplicatedMovement()
+{
+	Super::OnRep_ReplicatedMovement();
+	SimProxiesTurn();
+	TimeSinceLastMovementReplication = 0.f;
+}
+
 void ABlasterCharacter::BeginPlay()
 {
 	Super::BeginPlay();
@@ -233,17 +261,23 @@ void ABlasterCharacter::FireWeaponReleased()
 	}
 }
 
+float ABlasterCharacter::CalculateSpeed() const
+{
+	FVector Velocity = GetVelocity();
+	Velocity.Z = 0.f;
+	return Velocity.Size();
+}
+
 void ABlasterCharacter::AimOffset(float DeltaTime)
 {
 	if (!IsWeaponEquipped()) return;
 
-	FVector Velocity = GetVelocity();
-	Velocity.Z = 0.f;
-	const float Speed = Velocity.Size();
-	bool bIsInAir = GetCharacterMovement()->IsFalling();
+	const float Speed = CalculateSpeed();
+	const bool bIsInAir = GetCharacterMovement()->IsFalling();
 
 	if (Speed == 0.f && !bIsInAir) // Standing still, not jumping.
 	{
+		bRotateRootBone = true;
 		FRotator CurrentRotation = FRotator(0.f, GetBaseAimRotation().Yaw, 0.f);
 		FRotator DeltaAimRotation = UKismetMathLibrary::NormalizedDeltaRotator(CurrentRotation, StartingAimRotation);
 		AO_Yaw = DeltaAimRotation.Yaw;
@@ -257,22 +291,72 @@ void ABlasterCharacter::AimOffset(float DeltaTime)
 	}
 	if (Speed > 0.f || bIsInAir) // Running or jumping
 	{
+		bRotateRootBone = false;
 		StartingAimRotation = FRotator(0.f, GetBaseAimRotation().Yaw, 0.f);
 		AO_Yaw = 0.f;
 		bUseControllerRotationYaw = true;
 		TurningInPlace = ETurningInPlace::ETIP_NotTurning;
 	}
+	CalculateAO_Pitch();
+}
 
+void ABlasterCharacter::CalculateAO_Pitch()
+{
 	AO_Pitch = GetBaseAimRotation().Pitch;
 
 	// Convert compressed value to a valid range [-90,90].
 	if (AO_Pitch > 90.f && !IsLocallyControlled())
 	{
 		// Map pitch from the range [270,360) to [-90,0)
-		FVector2D InRange(270.f, 360.f);
-		FVector2D OutRange(-90.f, 0.f);
+		const FVector2D InRange(270.f, 360.f);
+		const FVector2D OutRange(-90.f, 0.f);
 		AO_Pitch = FMath::GetMappedRangeValueClamped(InRange, OutRange, AO_Pitch);
 	}
+}
+
+void ABlasterCharacter::SimProxiesTurn()
+{
+	// if (!CombatComponent || !CombatComponent->EquippedWeapon) return;
+	if (!IsWeaponEquipped()) return;
+	
+	// Simulated proxies do not rotate bones.
+	bRotateRootBone = false;
+	
+	// Is moving.
+	if (CalculateSpeed() > 0.f)
+	{
+		TurningInPlace = ETurningInPlace::ETIP_NotTurning;
+		return;
+	}
+	
+	ProxyRotationLastFrame = ProxyRotation;
+	ProxyRotation = GetActorRotation();
+	// Delta Yaw rotation between frames.
+	const float ProxyYaw = UKismetMathLibrary::NormalizedDeltaRotator(ProxyRotation, ProxyRotationLastFrame).Yaw;
+	
+	UE_LOG(LogTemp, Display, TEXT("Proxy Yaw: %f"), ProxyYaw);
+	
+	// Delta rotation exceeds threshold.
+	if (FMath::Abs(ProxyYaw) > TurnThreshold)
+	{
+		// Turned right.
+		if (ProxyYaw > TurnThreshold)
+		{
+			TurningInPlace = ETurningInPlace::ETIP_Right;
+		}
+		// Turned left.
+		else if (ProxyYaw < -TurnThreshold)
+		{
+			TurningInPlace = ETurningInPlace::ETIP_Left;
+		}
+		// Not turning.
+		else
+		{
+			TurningInPlace = ETurningInPlace::ETIP_NotTurning;
+		}
+		return;
+	}
+	TurningInPlace = ETurningInPlace::ETIP_NotTurning;
 }
 
 void ABlasterCharacter::Jump()
