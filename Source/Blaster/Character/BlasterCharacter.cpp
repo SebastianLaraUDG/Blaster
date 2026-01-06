@@ -124,7 +124,7 @@ void ABlasterCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCo
 	// Bind weapon combat.
 	EnhancedInput->BindAction(AimInputAction, ETriggerEvent::Started, this, &ThisClass::AimStarted);
 	EnhancedInput->BindAction(AimInputAction, ETriggerEvent::Completed, this, &ThisClass::AimStopped);
-	EnhancedInput->BindAction(FireInputAction, ETriggerEvent::/*Triggered*/Started, this, &ThisClass::FireWeaponPressed);
+	EnhancedInput->BindAction(FireInputAction, ETriggerEvent::Started, this, &ThisClass::FireWeaponPressed);
 	EnhancedInput->BindAction(FireInputAction, ETriggerEvent::Completed, this, &ThisClass::FireWeaponReleased);
 }
 
