@@ -26,6 +26,7 @@ AProjectile::AProjectile()
 	CollisionBox->SetCollisionResponseToChannel(ECC_Visibility, ECR_Block);
 	CollisionBox->SetCollisionResponseToChannel(ECC_WorldStatic, ECR_Block);
 	CollisionBox->SetCollisionResponseToChannel(ECC_SkeletalMesh, ECR_Block);
+	CollisionBox->bReturnMaterialOnMove = true; // Specify hits return physical materials.
 	// Projectile movement.
 	ProjectileMovement = CreateDefaultSubobject<UProjectileMovementComponent>(TEXT("Projectile Movement Component"));
 	ProjectileMovement->bRotationFollowsVelocity = true;
@@ -61,9 +62,18 @@ void AProjectile::Tick(float DeltaTime)
 void AProjectile::OnHit(UPrimitiveComponent* HitComp, AActor* HitOther, UPrimitiveComponent* OtherComp,
                         FVector NormalImpulse, const FHitResult& Hit)
 {
+	// Hit was a block and physical material is defined, then show impact effects on all clients and server.
+	
+	if (Hit.bBlockingHit && Hit.PhysMaterial != nullptr)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Calling impact effects in multicast..."))
+		MulticastImpactEffects(Hit.PhysMaterial.Get());
+	}
+
 	// TODO: Change so that this script does not use a hard reference.
 	if (const auto BlasterCharacter = Cast<ABlasterCharacter>(HitOther))
 	{
+		// Hitting character.  Call to character for a reaction montage and probably other stuff.
 		BlasterCharacter->MulticastHit();
 	}
 
@@ -72,13 +82,38 @@ void AProjectile::OnHit(UPrimitiveComponent* HitComp, AActor* HitOther, UPrimiti
 	Destroy();
 }
 
+void AProjectile::MulticastImpactEffects_Implementation(UPhysicalMaterial* HitMaterial)
+{
+	const FImpactEffect* const CurrentEffect = ImpactEffects.Find(HitMaterial->SurfaceType);
+	// An effect was found with the provided hit material.
+	if (CurrentEffect && CurrentEffect->ImpactParticle)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("There was an impact with a surface"));
+		ImpactParticle = CurrentEffect->ImpactParticle;
+	}
+	else
+	{
+		ImpactParticle = DefaultImpactParticle;
+	}
+
+	// Same with sound
+	if (CurrentEffect && CurrentEffect->ImpactSound)
+	{
+		ImpactSound = CurrentEffect->ImpactSound;
+	}
+	else
+	{
+		ImpactSound = DefaultImpactSound;
+	}
+}
+
 void AProjectile::Destroyed()
 {
 	Super::Destroyed();
 
-	if (ImpactParticles)
+	if (ImpactParticle)
 	{
-		UNiagaraFunctionLibrary::SpawnSystemAtLocation(this, ImpactParticles, GetActorLocation(), GetActorRotation());
+		UNiagaraFunctionLibrary::SpawnSystemAtLocation(this, ImpactParticle, GetActorLocation(), GetActorRotation());
 	}
 	if (ImpactSound)
 	{
