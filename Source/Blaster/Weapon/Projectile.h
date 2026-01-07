@@ -44,7 +44,7 @@ private:
 
 	UPROPERTY(EditAnywhere, Category=VFX)
 	TObjectPtr<UNiagaraComponent> TracerNiagaraComponent;
-
+	
 	UPROPERTY(EditDefaultsOnly, Category=VFX)
 	TObjectPtr<UNiagaraSystem> ImpactParticles;
 	

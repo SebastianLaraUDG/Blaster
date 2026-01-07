@@ -53,6 +53,11 @@ void AProjectile::BeginPlay()
 	}
 }
 
+void AProjectile::Tick(float DeltaTime)
+{
+	Super::Tick(DeltaTime);
+}
+
 void AProjectile::OnHit(UPrimitiveComponent* HitComp, AActor* HitOther, UPrimitiveComponent* OtherComp,
                         FVector NormalImpulse, const FHitResult& Hit)
 {
@@ -65,11 +70,6 @@ void AProjectile::OnHit(UPrimitiveComponent* HitComp, AActor* HitOther, UPrimiti
 	// TODO: Instead of destroying, when implementing object pool, make invisible, disable collision and return to pool.
 	// The downside of doing that is that I will have to implement replication.
 	Destroy();
-}
-
-void AProjectile::Tick(float DeltaTime)
-{
-	Super::Tick(DeltaTime);
 }
 
 void AProjectile::Destroyed()
