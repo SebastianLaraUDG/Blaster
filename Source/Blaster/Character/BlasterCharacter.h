@@ -8,6 +8,7 @@
 #include "Blaster/Interfaces/InteractWithCrosshairsInterface.h"
 #include "BlasterCharacter.generated.h"
 
+class UHealthComponent;
 class UCombatComponent;
 class UWidgetComponent;
 class USpringArmComponent;
@@ -93,6 +94,10 @@ private:
 	/* Combat component. */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Combat, meta = (AllowPrivateAccess = true))
 	TObjectPtr<UCombatComponent> CombatComponent;
+	
+	/* Health component. */
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Combat|Health", meta = (AllowPrivateAccess = true))
+	TObjectPtr<UHealthComponent> HealthComponent;
 
 	// My first Server RPC!
 	UFUNCTION(Server, Reliable)

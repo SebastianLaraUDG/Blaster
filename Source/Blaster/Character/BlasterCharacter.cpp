@@ -16,6 +16,7 @@
 #include "Kismet/KismetMathLibrary.h"
 #include "BlasterAnimInstance.h"
 #include "Blaster/Blaster.h"
+#include "Blaster/BlasterComponents/HealthComponent.h"
 
 ABlasterCharacter::ABlasterCharacter()
 {
@@ -54,6 +55,10 @@ ABlasterCharacter::ABlasterCharacter()
 	TurningInPlace = ETurningInPlace::ETIP_NotTurning;
 	SetNetUpdateFrequency(66.f);
 	SetMinNetUpdateFrequency(33.f);
+	
+	// Health component.
+	HealthComponent = CreateDefaultSubobject<UHealthComponent>(TEXT("HealthComponent"));
+	HealthComponent->SetIsReplicated(true);
 }
 
 void ABlasterCharacter::Tick(float DeltaTime)
