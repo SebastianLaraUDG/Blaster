@@ -33,7 +33,7 @@ private:
 	UPROPERTY(VisibleAnywhere, Category = Health)
 	float CurrentHealth;	// TODO: setup replication?
 	
-	UPROPERTY(VisibleAnywhere, Category = Health, meta = (ClampMin = 0.00001))
+	UPROPERTY(EditAnywhere, Category = Health, meta = (ClampMin = 0.00001))
 	float MaxHealth = 100.f;
 		
 };
