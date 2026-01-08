@@ -22,10 +22,16 @@ void UHealthComponent::GetLifetimeReplicatedProps(TArray<class FLifetimeProperty
 void UHealthComponent::BeginPlay()
 {
 	Super::BeginPlay();
+	
+	// Bind owners OnTakeAnyDamage (only on server)
+	if (GetOwner() && GetOwner()->HasAuthority())
+	{
+		GetOwner()->OnTakeAnyDamage.AddDynamic(this, &ThisClass::ReceiveDamage);
+	}
 }
 
-void UHealthComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
+void UHealthComponent::ReceiveDamage(AActor* DamagedActor, float Damage, const UDamageType* DamageType,
+	AController* InstigatedBy, AActor* DamageCauser)
 {
-	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
+	CurrentHealth = FMath::Clamp(CurrentHealth - Damage, 0.f, MaxHealth);
 }
-
