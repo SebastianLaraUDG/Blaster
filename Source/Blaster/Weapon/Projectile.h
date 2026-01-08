@@ -51,6 +51,8 @@ protected:
 	UFUNCTION(NetMulticast, Reliable)
 	void MulticastImpactEffects(UPhysicalMaterial* HitMaterial);
 	
+	UPROPERTY(EditDefaultsOnly, meta = (ClampMin = 0.000001))
+	float Damage = 1.f; // TODO: Wouldn't it be better to implement this in an interface?
 
 private:
 	UPROPERTY(EditAnywhere)
