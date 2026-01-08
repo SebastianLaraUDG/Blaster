@@ -66,7 +66,6 @@ void AProjectile::OnHit(UPrimitiveComponent* HitComp, AActor* HitOther, UPrimiti
 	
 	if (Hit.bBlockingHit && Hit.PhysMaterial != nullptr)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("Calling impact effects in multicast..."))
 		MulticastImpactEffects(Hit.PhysMaterial.Get());
 	}
 
@@ -88,7 +87,6 @@ void AProjectile::MulticastImpactEffects_Implementation(UPhysicalMaterial* HitMa
 	// An effect was found with the provided hit material.
 	if (CurrentEffect && CurrentEffect->ImpactParticle)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("There was an impact with a surface"));
 		ImpactParticle = CurrentEffect->ImpactParticle;
 	}
 	else
