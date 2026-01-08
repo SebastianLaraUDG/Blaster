@@ -17,6 +17,7 @@
 #include "BlasterAnimInstance.h"
 #include "Blaster/Blaster.h"
 #include "Blaster/BlasterComponents/HealthComponent.h"
+#include "Blaster/PlayerController/BlasterPlayerController.h"
 
 ABlasterCharacter::ABlasterCharacter()
 {
@@ -58,7 +59,6 @@ ABlasterCharacter::ABlasterCharacter()
 	
 	// Health component.
 	HealthComponent = CreateDefaultSubobject<UHealthComponent>(TEXT("HealthComponent"));
-	HealthComponent->SetIsReplicated(true);
 }
 
 void ABlasterCharacter::Tick(float DeltaTime)
@@ -186,6 +186,12 @@ void ABlasterCharacter::OnRep_ReplicatedMovement()
 void ABlasterCharacter::BeginPlay()
 {
 	Super::BeginPlay();
+	
+	// Initialize HUD health values.
+	if (BlasterPlayerController = Cast<ABlasterPlayerController>(Controller); BlasterPlayerController)
+	{
+		BlasterPlayerController->SetHUDHealth(HealthComponent->GetCurrentHealth(), HealthComponent->GetMaxHealth());
+	}
 }
 
 void ABlasterCharacter::Move(const FInputActionValue& Value)

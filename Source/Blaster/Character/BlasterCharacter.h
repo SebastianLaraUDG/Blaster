@@ -8,6 +8,7 @@
 #include "Blaster/Interfaces/InteractWithCrosshairsInterface.h"
 #include "BlasterCharacter.generated.h"
 
+class ABlasterPlayerController;
 class UHealthComponent;
 class UCombatComponent;
 class UWidgetComponent;
@@ -98,6 +99,8 @@ private:
 	/* Health component. */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Combat|Health", meta = (AllowPrivateAccess = true))
 	TObjectPtr<UHealthComponent> HealthComponent;
+	
+	
 
 	// My first Server RPC!
 	UFUNCTION(Server, Reliable)
@@ -139,6 +142,7 @@ private:
 	UPROPERTY(EditAnywhere, Category = "Movement|Replication", meta = (AllowPrivateAccess = "true"))
 	float TimeForMovementReplicationUpdate = 0.25f; // TODO: I don't like this name. Maybe I could rename it for something more appropriate.
 	
+	TObjectPtr<ABlasterPlayerController> BlasterPlayerController;
 
 public:
 	/* Input Temporal aqui. No se si ponerlo en el controller.*/

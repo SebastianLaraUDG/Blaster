@@ -30,10 +30,16 @@ private:
 	 * Player health.
 	 */
 	
-	UPROPERTY(VisibleAnywhere, Category = Health)
-	float CurrentHealth;	// TODO: setup replication?
+	UPROPERTY(Replicated, VisibleAnywhere, Category = Health)
+	float CurrentHealth = 1.f;	// TODO: setup replication?
 	
 	UPROPERTY(EditAnywhere, Category = Health, meta = (ClampMin = 0.00001))
 	float MaxHealth = 100.f;
-		
+public:
+	
+	UFUNCTION(BlueprintPure, Category = Health)
+	FORCEINLINE float GetCurrentHealth() const { return CurrentHealth; }
+	
+	UFUNCTION(BlueprintPure, Category = Health)
+	FORCEINLINE float GetMaxHealth() const { return MaxHealth; }
 };
