@@ -14,6 +14,8 @@ class ABlasterCharacter;
 
 /*
  * Combat component. Responsible for all combat functionality.
+ * To support left hand FABRIK make sure the Skeletal mesh contains a socket
+ * "LeftHandSocket".
  */
 UCLASS(ClassGroup=(Custom), meta=(BlueprintSpawnableComponent))
 class BLASTER_API UCombatComponent : public UActorComponent
