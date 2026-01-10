@@ -6,6 +6,9 @@
 #include "Components/ActorComponent.h"
 #include "HealthComponent.generated.h"
 
+// DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FHealthChangedSignature, float, NewHealth, float, Delta);
+DECLARE_MULTICAST_DELEGATE_TwoParams(FHealthChangedSignature, float, float);
+
 /*
  * A health component. It is designed to be
  * reusable in different projects.
@@ -19,19 +22,25 @@ class BLASTER_API UHealthComponent : public UActorComponent
 public:	
 	UHealthComponent();
 	virtual void GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const override;
+	
+	FHealthChangedSignature OnHealthChanged;
+	
 protected:
 	virtual void BeginPlay() override;
 	
 	UFUNCTION()
 	virtual void ReceiveDamage(AActor* DamagedActor, float Damage, const /*class*/ UDamageType* DamageType, /*class*/ AController* InstigatedBy, AActor* DamageCauser);
+	
+	UFUNCTION()
+	virtual void OnRep_Health(float OldHealth);
 private:
 	
 	/*
 	 * Player health.
 	 */
 	
-	UPROPERTY(Replicated, VisibleAnywhere, Category = Health)
-	float CurrentHealth = 1.f;	// TODO: setup replication?
+	UPROPERTY(ReplicatedUsing = OnRep_Health, VisibleAnywhere, Category = Health)
+	float CurrentHealth = 89.5f;	// TODO: initialize at low value. It's 89 just for testing HUD.
 	
 	UPROPERTY(EditAnywhere, Category = Health, meta = (ClampMin = 0.00001))
 	float MaxHealth = 100.f;

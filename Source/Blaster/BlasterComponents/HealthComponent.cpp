@@ -9,13 +9,14 @@
 UHealthComponent::UHealthComponent()
 {
 	PrimaryComponentTick.bCanEverTick = false;
+	SetIsReplicatedByDefault(true);
 }
 
 void UHealthComponent::GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 	
-	DOREPLIFETIME(UHealthComponent, MaxHealth)
+	DOREPLIFETIME(UHealthComponent, CurrentHealth);
 }
 
 
@@ -33,5 +34,13 @@ void UHealthComponent::BeginPlay()
 void UHealthComponent::ReceiveDamage(AActor* DamagedActor, float Damage, const UDamageType* DamageType,
 	AController* InstigatedBy, AActor* DamageCauser)
 {
+	const float OldHealth = CurrentHealth;
 	CurrentHealth = FMath::Clamp(CurrentHealth - Damage, 0.f, MaxHealth);
+	
+	OnHealthChanged.Broadcast(CurrentHealth, CurrentHealth - OldHealth);
+}
+
+void UHealthComponent::OnRep_Health(float OldHealth)
+{
+	OnHealthChanged.Broadcast(CurrentHealth, CurrentHealth - OldHealth);
 }

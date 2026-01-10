@@ -56,9 +56,10 @@ ABlasterCharacter::ABlasterCharacter()
 	TurningInPlace = ETurningInPlace::ETIP_NotTurning;
 	SetNetUpdateFrequency(66.f);
 	SetMinNetUpdateFrequency(33.f);
-	
+
 	// Health component.
 	HealthComponent = CreateDefaultSubobject<UHealthComponent>(TEXT("HealthComponent"));
+	HealthComponent->SetIsReplicated(true);
 }
 
 void ABlasterCharacter::Tick(float DeltaTime)
@@ -69,7 +70,7 @@ void ABlasterCharacter::Tick(float DeltaTime)
 	 * Aim offsets for both local players and simulated proxies.
 	 * 
 	 */
-	
+
 	// Only autonomous and authority proxies controlled by a player will calculate aim offsets.
 	if (GetLocalRole() > ROLE_SimulatedProxy && IsLocallyControlled())
 	{
@@ -85,7 +86,6 @@ void ABlasterCharacter::Tick(float DeltaTime)
 		}
 		CalculateAO_Pitch();
 	}
-	
 	
 	HideCharacterIfCameraClose();
 }
@@ -186,12 +186,15 @@ void ABlasterCharacter::OnRep_ReplicatedMovement()
 void ABlasterCharacter::BeginPlay()
 {
 	Super::BeginPlay();
-	
-	// Initialize HUD health values.
-	if (BlasterPlayerController = Cast<ABlasterPlayerController>(Controller); BlasterPlayerController)
+
+	// Bind health changed.
+	// We don't bind it only on server to allow for HitMontage play for every character in all machines.
+	if (HealthComponent)
 	{
-		BlasterPlayerController->SetHUDHealth(HealthComponent->GetCurrentHealth(), HealthComponent->GetMaxHealth());
+		HealthComponent->OnHealthChanged.AddUObject(this, &ABlasterCharacter::OnHealthChanged);
 	}
+	// Initialize HUD health values.
+	UpdateHUD();
 }
 
 void ABlasterCharacter::Move(const FInputActionValue& Value)
@@ -329,24 +332,24 @@ void ABlasterCharacter::SimProxiesTurn()
 {
 	// if (!CombatComponent || !CombatComponent->EquippedWeapon) return;
 	if (!IsWeaponEquipped()) return;
-	
+
 	// Simulated proxies do not rotate bones.
 	bRotateRootBone = false;
-	
+
 	// Is moving.
 	if (CalculateSpeed() > 0.f)
 	{
 		TurningInPlace = ETurningInPlace::ETIP_NotTurning;
 		return;
 	}
-	
+
 	ProxyRotationLastFrame = ProxyRotation;
 	ProxyRotation = GetActorRotation();
 	// Delta Yaw rotation between frames.
 	const float ProxyYaw = UKismetMathLibrary::NormalizedDeltaRotator(ProxyRotation, ProxyRotationLastFrame).Yaw;
-	
+
 	// UE_LOG(LogTemp, Display, TEXT("Proxy Yaw: %f"), ProxyYaw);
-	
+
 	// Delta rotation exceeds threshold.
 	if (FMath::Abs(ProxyYaw) > TurnThreshold)
 	{
@@ -406,26 +409,41 @@ void ABlasterCharacter::TurnInPlace(float DeltaTime)
 	}
 }
 
-void ABlasterCharacter::MulticastHit_Implementation()
-{
-	PlayHitReactMontage();
-}
-
 void ABlasterCharacter::HideCharacterIfCameraClose() const
 {
 	if (!IsLocallyControlled()) return;
 
-	const bool bCameraTooCloseToCharacter = (Camera->GetComponentLocation() - GetActorLocation() ).Size() < CameraThreshold;
-	
+	const bool bCameraTooCloseToCharacter = (Camera->GetComponentLocation() - GetActorLocation()).Size() <
+		CameraThreshold;
+
 	// In case camera is too close to character, mesh must not be visible.
 	GetMesh()->SetVisibility(!bCameraTooCloseToCharacter);
-	
+
 	// Weapon has a valid mesh.
 	if (CombatComponent && CombatComponent->EquippedWeapon && CombatComponent->EquippedWeapon->GetMesh())
 	{
 		// In case camera is too close to character, character should not see weapon.
 		CombatComponent->EquippedWeapon->GetMesh()->SetOwnerNoSee(bCameraTooCloseToCharacter);
 	}
+}
+
+void ABlasterCharacter::OnHealthChanged(float NewHealth, float DeltaHealth)
+{
+	UpdateHUD();
+	PlayHitReactMontage();
+}
+
+void ABlasterCharacter::UpdateHUD()
+{
+	// Only local players need to update and see HUD.
+	if (!IsLocallyControlled()) return;
+	
+	// Make sure controller is valid.
+	if (!BlasterPlayerController)
+	{
+		BlasterPlayerController = Cast<ABlasterPlayerController>(Controller);
+	}
+	BlasterPlayerController->SetHUDHealth(HealthComponent->GetCurrentHealth(), HealthComponent->GetMaxHealth());
 }
 
 void ABlasterCharacter::OnRep_OverlappingWeapon(AWeapon* LastWeapon)

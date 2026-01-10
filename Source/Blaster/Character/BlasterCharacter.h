@@ -37,11 +37,11 @@ public:
 	virtual void PostInitializeComponents() override;
 	void PlayFireMontage(bool bAiming);
 	
-	UFUNCTION(NetMulticast, Unreliable)
-	void MulticastHit();
-	
 	virtual void OnRep_ReplicatedMovement() override;
 
+	UFUNCTION(BlueprintCallable, Category = HUD)
+	void UpdateHUD();
+	
 protected:
 	virtual void BeginPlay() override;
 
@@ -143,6 +143,8 @@ private:
 	float TimeForMovementReplicationUpdate = 0.25f; // TODO: I don't like this name. Maybe I could rename it for something more appropriate.
 	
 	TObjectPtr<ABlasterPlayerController> BlasterPlayerController;
+	
+	void OnHealthChanged(float NewHealth, float DeltaHealth);
 
 public:
 	/* Input Temporal aqui. No se si ponerlo en el controller.*/

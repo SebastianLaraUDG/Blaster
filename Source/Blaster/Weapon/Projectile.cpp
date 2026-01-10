@@ -68,14 +68,16 @@ void AProjectile::OnHit(UPrimitiveComponent* HitComp, AActor* HitOther, UPrimiti
 	{
 		MulticastImpactEffects(Hit.PhysMaterial.Get());
 	}
-
+	
+/*
 	// TODO: Change so that this script does not use a hard reference.
 	if (const auto BlasterCharacter = Cast<ABlasterCharacter>(HitOther))
 	{
 		// Hitting character.  Call to character for a reaction montage and probably other stuff.
 		BlasterCharacter->MulticastHit();
 	}
-
+*/
+	
 	// TODO: Instead of destroying, when implementing object pool, make invisible, disable collision and return to pool.
 	// The downside of doing that is that I will have to implement replication.
 	Destroy();
