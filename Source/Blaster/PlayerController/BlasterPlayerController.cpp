@@ -35,7 +35,7 @@ void ABlasterPlayerController::SetHUDHealth(float Health, float MaxHealth)
 		// Progress bar Percent.
 		BlasterHUD->CharacterOverlay->HealthBar->SetPercent(HealthPercent);
 		// Text.
-		FString HealthText = FString::Printf(TEXT("%d/%d"), FMath::CeilToInt32(Health), FMath::CeilToInt32(MaxHealth));
+		const FString HealthText = FString::Printf(TEXT("%d/%d"), FMath::CeilToInt32(Health), FMath::CeilToInt32(MaxHealth));
 		BlasterHUD->CharacterOverlay->HealthText->SetText(FText::FromString(HealthText));
 	}
 }
