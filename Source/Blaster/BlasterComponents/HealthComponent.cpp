@@ -4,6 +4,7 @@
 #include "HealthComponent.h"
 
 #include "Net/UnrealNetwork.h"
+#include "GameFramework/Controller.h" 
 
 
 UHealthComponent::UHealthComponent()
@@ -36,11 +37,11 @@ void UHealthComponent::ReceiveDamage(AActor* DamagedActor, float Damage, const U
 {
 	const float OldHealth = CurrentHealth;
 	CurrentHealth = FMath::Clamp(CurrentHealth - Damage, 0.f, MaxHealth);
-	
-	OnHealthChanged.Broadcast(CurrentHealth, CurrentHealth - OldHealth);
+	LastInstigatorController = InstigatedBy;
+	OnHealthChanged.Broadcast(CurrentHealth, CurrentHealth - OldHealth, LastInstigatorController);
 }
 
 void UHealthComponent::OnRep_Health(float OldHealth)
 {
-	OnHealthChanged.Broadcast(CurrentHealth, CurrentHealth - OldHealth);
+	OnHealthChanged.Broadcast(CurrentHealth, CurrentHealth - OldHealth, LastInstigatorController);
 }

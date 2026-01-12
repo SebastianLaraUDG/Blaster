@@ -41,7 +41,8 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = HUD)
 	void UpdateHUD();
-	
+	// For when the player is eliminated.
+	void Elim();
 protected:
 	virtual void BeginPlay() override;
 
@@ -144,7 +145,7 @@ private:
 	
 	TObjectPtr<ABlasterPlayerController> BlasterPlayerController;
 	
-	void OnHealthChanged(float NewHealth, float DeltaHealth);
+	void OnHealthChanged(float NewHealth, float DeltaHealth, AController* InstigatorController);
 
 public:
 	/* Input Temporal aqui. No se si ponerlo en el controller.*/

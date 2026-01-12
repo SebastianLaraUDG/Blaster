@@ -6,8 +6,10 @@
 #include "Components/ActorComponent.h"
 #include "HealthComponent.generated.h"
 
-// DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FHealthChangedSignature, float, NewHealth, float, Delta);
-DECLARE_MULTICAST_DELEGATE_TwoParams(FHealthChangedSignature, float, float);
+class AController;
+
+
+DECLARE_MULTICAST_DELEGATE_ThreeParams(FHealthChangedSignature, float NewHealth, float DeltaHealth, AController* InstigatorController);
 
 /*
  * A health component. It is designed to be
@@ -44,6 +46,10 @@ private:
 	
 	UPROPERTY(EditAnywhere, Category = Health, meta = (ClampMin = 0.00001))
 	float MaxHealth = 100.f;
+	
+	// The instigator controller of the last damage taken event.
+	// Saved to call on OnRep_Health.
+	TObjectPtr<AController> LastInstigatorController;
 public:
 	
 	UFUNCTION(BlueprintPure, Category = Health)

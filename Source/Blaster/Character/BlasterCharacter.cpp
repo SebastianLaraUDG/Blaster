@@ -17,6 +17,7 @@
 #include "BlasterAnimInstance.h"
 #include "Blaster/Blaster.h"
 #include "Blaster/BlasterComponents/HealthComponent.h"
+#include "Blaster/GameMode/BlasterGameMode.h"
 #include "Blaster/PlayerController/BlasterPlayerController.h"
 
 ABlasterCharacter::ABlasterCharacter()
@@ -427,10 +428,23 @@ void ABlasterCharacter::HideCharacterIfCameraClose() const
 	}
 }
 
-void ABlasterCharacter::OnHealthChanged(float NewHealth, float DeltaHealth)
+void ABlasterCharacter::OnHealthChanged(float NewHealth, float DeltaHealth, AController* InstigatorController)
 {
 	UpdateHUD();
 	PlayHitReactMontage();
+	
+	// Register death in game mode.
+	if (HealthComponent->GetCurrentHealth() == 0.f)
+	{
+		if (const auto BlasterGameMode= GetWorld()->GetAuthGameMode<ABlasterGameMode>())
+		{
+			const auto AttackerController = Cast<ABlasterPlayerController>(InstigatorController);
+			BlasterGameMode->PlayerEliminated(this,
+				BlasterPlayerController? BlasterPlayerController : nullptr,
+				AttackerController ? AttackerController : nullptr
+				);
+		}
+	}
 }
 
 void ABlasterCharacter::UpdateHUD()
@@ -443,7 +457,13 @@ void ABlasterCharacter::UpdateHUD()
 	{
 		BlasterPlayerController = Cast<ABlasterPlayerController>(Controller);
 	}
+	if (!BlasterPlayerController) return;
 	BlasterPlayerController->SetHUDHealth(HealthComponent->GetCurrentHealth(), HealthComponent->GetMaxHealth());
+}
+
+void ABlasterCharacter::Elim()
+{
+	//
 }
 
 void ABlasterCharacter::OnRep_OverlappingWeapon(AWeapon* LastWeapon)
