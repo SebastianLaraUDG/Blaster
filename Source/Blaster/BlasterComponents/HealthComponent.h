@@ -42,7 +42,7 @@ private:
 	 */
 	
 	UPROPERTY(ReplicatedUsing = OnRep_Health, VisibleAnywhere, Category = Health)
-	float CurrentHealth = 89.5f;	// TODO: initialize at low value. It's 89 just for testing HUD.
+	float CurrentHealth = 89.5f;	// TODO: initialize at a low value. It's 89 just for testing HUD.
 	
 	UPROPERTY(EditAnywhere, Category = Health, meta = (ClampMin = 0.00001))
 	float MaxHealth = 100.f;
@@ -57,4 +57,7 @@ public:
 	
 	UFUNCTION(BlueprintPure, Category = Health)
 	FORCEINLINE float GetMaxHealth() const { return MaxHealth; }
+	
+	UFUNCTION(BlueprintPure, Category = Health)
+	FORCEINLINE bool IsDead() const { return CurrentHealth <= 0.f; }
 };

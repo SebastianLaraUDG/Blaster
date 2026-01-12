@@ -9,5 +9,8 @@
 void ABlasterGameMode::PlayerEliminated(ABlasterCharacter* ElimmedCharacter, ABlasterPlayerController* VictimController,
 	ABlasterPlayerController* AttackerController)
 {
-	//
+	if (ElimmedCharacter)
+	{
+		ElimmedCharacter->MulticastElim();
+	}
 }

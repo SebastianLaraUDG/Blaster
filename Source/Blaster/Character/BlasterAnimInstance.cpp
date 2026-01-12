@@ -3,6 +3,7 @@
 
 #include "BlasterAnimInstance.h"
 #include "BlasterCharacter.h"
+#include "Blaster/BlasterComponents/HealthComponent.h"
 #include "Blaster/Weapon/Weapon.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Kismet/KismetMathLibrary.h"
@@ -108,4 +109,6 @@ void UBlasterAnimInstance::NativeUpdateAnimation(const float DeltaSeconds)
 */
 		}
 	}
+
+	bIsDead = BlasterCharacter ? BlasterCharacter->GetHealthComponent()->IsDead() : false;
 }

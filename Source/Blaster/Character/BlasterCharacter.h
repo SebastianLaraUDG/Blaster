@@ -36,13 +36,16 @@ public:
 	virtual void GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const override;
 	virtual void PostInitializeComponents() override;
 	void PlayFireMontage(bool bAiming);
+	void PlayElimMontage();
 	
 	virtual void OnRep_ReplicatedMovement() override;
 
 	UFUNCTION(BlueprintCallable, Category = HUD)
 	void UpdateHUD();
+	
 	// For when the player is eliminated.
-	void Elim();
+	UFUNCTION(NetMulticast, Reliable)
+	void MulticastElim();
 protected:
 	virtual void BeginPlay() override;
 
@@ -124,6 +127,9 @@ private:
 	UPROPERTY(EditAnywhere, Category = Combat)
 	TObjectPtr<UAnimMontage> HitReactMontage;
 	
+	UPROPERTY(EditAnywhere, Category = Combat)
+	TObjectPtr<UAnimMontage> ElimMontage;
+	
 	void HideCharacterIfCameraClose() const;
 	
 	// Distance from the camera to the player at which character mesh and weapon will be invisible.
@@ -194,4 +200,5 @@ public:
 	FVector GetHitTarget() const;
 	FORCEINLINE UCameraComponent* GetCamera() const { return Camera; }
 	FORCEINLINE bool ShouldRotateRootBone() const { return bRotateRootBone; }
+	FORCEINLINE UHealthComponent* GetHealthComponent() const { return HealthComponent; }
 };

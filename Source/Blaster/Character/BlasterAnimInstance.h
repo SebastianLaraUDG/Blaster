@@ -95,4 +95,8 @@ private:
 	
 	UPROPERTY(BlueprintReadOnly, Category = Character, meta = (AllowPrivateAccess = "true"))
 	bool bRotateRootBone;
+	
+	/* Dead */
+	UPROPERTY(BlueprintReadOnly, Category = Character, meta = (AllowPrivateAccess = "true"))
+	bool bIsDead = false;
 };

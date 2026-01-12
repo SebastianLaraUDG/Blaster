@@ -165,6 +165,15 @@ void ABlasterCharacter::PlayFireMontage(bool bAiming)
 	}
 }
 
+void ABlasterCharacter::PlayElimMontage()
+{
+	UAnimInstance* const AnimInstance = GetMesh()->GetAnimInstance();
+	if (ElimMontage && AnimInstance)
+	{
+		AnimInstance->Montage_Play(ElimMontage);
+	}
+}
+
 void ABlasterCharacter::PlayHitReactMontage() const
 {
 	if (!CombatComponent || !IsWeaponEquipped()) return;
@@ -461,9 +470,9 @@ void ABlasterCharacter::UpdateHUD()
 	BlasterPlayerController->SetHUDHealth(HealthComponent->GetCurrentHealth(), HealthComponent->GetMaxHealth());
 }
 
-void ABlasterCharacter::Elim()
+void ABlasterCharacter::MulticastElim_Implementation()
 {
-	//
+	PlayElimMontage();
 }
 
 void ABlasterCharacter::OnRep_OverlappingWeapon(AWeapon* LastWeapon)
