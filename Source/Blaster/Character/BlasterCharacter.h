@@ -36,16 +36,18 @@ public:
 	virtual void GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const override;
 	virtual void PostInitializeComponents() override;
 	void PlayFireMontage(bool bAiming);
-	void PlayElimMontage();
 	
 	virtual void OnRep_ReplicatedMovement() override;
 
 	UFUNCTION(BlueprintCallable, Category = HUD)
 	void UpdateHUD();
 	
-	// For when the player is eliminated.
+	// For when the player is eliminated. Plays Elim Montage in all machines.
+	void Elim();
+	
 	UFUNCTION(NetMulticast, Reliable)
 	void MulticastElim();
+	
 protected:
 	virtual void BeginPlay() override;
 
@@ -151,7 +153,17 @@ private:
 	
 	TObjectPtr<ABlasterPlayerController> BlasterPlayerController;
 	
+	
+	void PlayElimMontage(); // TODO: make private?	
+	
 	void OnHealthChanged(float NewHealth, float DeltaHealth, AController* InstigatorController);
+	
+	FTimerHandle ElimTimer;
+	
+	UPROPERTY(EditDefaultsOnly, Category = Elimination)
+	float ElimDelay = 3.f;
+	
+	void ElimTimerFinished();
 
 public:
 	/* Input Temporal aqui. No se si ponerlo en el controller.*/
@@ -189,7 +201,7 @@ public:
 	TObjectPtr<UInputAction> FireInputAction;
 
 	/*~ Fin de seccion de inputs. */
-
+	
 	bool IsWeaponEquipped() const;
 	bool IsAiming() const;
 	void SetOverlappingWeapon(AWeapon* Weapon);

@@ -19,6 +19,7 @@
 #include "Blaster/BlasterComponents/HealthComponent.h"
 #include "Blaster/GameMode/BlasterGameMode.h"
 #include "Blaster/PlayerController/BlasterPlayerController.h"
+#include "TimerManager.h"
 
 ABlasterCharacter::ABlasterCharacter()
 {
@@ -456,6 +457,8 @@ void ABlasterCharacter::OnHealthChanged(float NewHealth, float DeltaHealth, ACon
 	}
 }
 
+
+
 void ABlasterCharacter::UpdateHUD()
 {
 	// Only local players need to update and see HUD.
@@ -468,6 +471,22 @@ void ABlasterCharacter::UpdateHUD()
 	}
 	if (!BlasterPlayerController) return;
 	BlasterPlayerController->SetHUDHealth(HealthComponent->GetCurrentHealth(), HealthComponent->GetMaxHealth());
+}
+
+void ABlasterCharacter::Elim()
+{
+	MulticastElim();
+
+	// Start respawn timer.
+	GetWorldTimerManager().SetTimer(ElimTimer, this, &ABlasterCharacter::ElimTimerFinished, ElimDelay);
+}
+
+void ABlasterCharacter::ElimTimerFinished()
+{
+	if (const auto BlasterGameMode = GetWorld()->GetAuthGameMode<ABlasterGameMode>())
+	{
+		BlasterGameMode->RequestRespawn(this, Controller);
+	}
 }
 
 void ABlasterCharacter::MulticastElim_Implementation()
