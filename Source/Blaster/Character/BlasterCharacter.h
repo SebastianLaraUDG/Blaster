@@ -10,6 +10,8 @@
 #include "BlasterCharacter.generated.h"
 
 
+class UNiagaraComponent;
+class UNiagaraSystem;
 class ABlasterPlayerController;
 class UHealthComponent;
 class UCombatComponent;
@@ -49,6 +51,8 @@ public:
 	
 	UFUNCTION(NetMulticast, Reliable)
 	void MulticastElim();
+	
+	virtual void Destroyed() override;
 	
 protected:
 	virtual void BeginPlay() override;
@@ -188,7 +192,20 @@ private:
 	// The dissolve material (asset).
 	UPROPERTY(EditAnywhere, Category = Elimination)
 	TObjectPtr<UMaterialInstance> DissolveMaterialInstance;
+	
+	
+	/*
+	 * Elim bot.
+	 */
+	UPROPERTY(EditAnywhere, Category = Elimination)
+	TObjectPtr<UNiagaraSystem> ElimBotEffect;
 
+	UPROPERTY(VisibleAnywhere, Category = Elimination)
+	TObjectPtr<UNiagaraComponent> ElimBotComponent;
+	
+	UPROPERTY(EditAnywhere, Category = Elimination)
+	TObjectPtr<USoundCue> ElimBotSound;
+	
 public:
 	/* Input Temporal aqui. No se si ponerlo en el controller.*/
 
