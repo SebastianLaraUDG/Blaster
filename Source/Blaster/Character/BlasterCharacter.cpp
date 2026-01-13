@@ -489,7 +489,7 @@ void ABlasterCharacter::UpdateHUD()
 	{
 		BlasterPlayerController = Cast<ABlasterPlayerController>(Controller);
 	}
-	if (!BlasterPlayerController) return;
+	if (!BlasterPlayerController) return; // Double check to avoid issues with server travel. TODO: improve both readability and process itself.
 	BlasterPlayerController->SetHUDHealth(HealthComponent->GetCurrentHealth(), HealthComponent->GetMaxHealth());
 }
 
