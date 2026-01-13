@@ -45,6 +45,10 @@ void ABlasterPlayerController::SetHUDHealth(float Health, float MaxHealth)
 void ABlasterPlayerController::OnPossess(APawn* InPawn)
 {
 	Super::OnPossess(InPawn);
+	/*
+	Update HUD on possess. This is because when the character respawned HUD (health bar) was not
+	being initialized correctly.
+	*/
 	if (auto BlasterCharacter = Cast<ABlasterCharacter>(InPawn))
 	{
 		BlasterCharacter->UpdateHUD();
