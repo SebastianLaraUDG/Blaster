@@ -2,6 +2,8 @@
 
 
 #include "BlasterPlayerController.h"
+
+#include "Blaster/Character/BlasterCharacter.h"
 #include "Blaster/HUD/BlasterHUD.h"
 #include "Blaster/HUD/CharacterOverlay.h"
 #include "Components/ProgressBar.h"
@@ -37,5 +39,14 @@ void ABlasterPlayerController::SetHUDHealth(float Health, float MaxHealth)
 		// Text.
 		const FString HealthText = FString::Printf(TEXT("%d/%d"), FMath::CeilToInt32(Health), FMath::CeilToInt32(MaxHealth));
 		BlasterHUD->CharacterOverlay->HealthText->SetText(FText::FromString(HealthText));
+	}
+}
+
+void ABlasterPlayerController::OnPossess(APawn* InPawn)
+{
+	Super::OnPossess(InPawn);
+	if (auto BlasterCharacter = Cast<ABlasterCharacter>(InPawn))
+	{
+		BlasterCharacter->UpdateHUD();
 	}
 }
