@@ -6,7 +6,9 @@
 #include "GameFramework/Character.h"
 #include "Blaster/BlasterTypes/TurningInPlace.h"
 #include "Blaster/Interfaces/InteractWithCrosshairsInterface.h"
+#include "Components/TimelineComponent.h"
 #include "BlasterCharacter.generated.h"
+
 
 class ABlasterPlayerController;
 class UHealthComponent;
@@ -164,6 +166,28 @@ private:
 	float ElimDelay = 3.f;
 	
 	void ElimTimerFinished();
+	
+	/* Dissolve effect. */
+	UPROPERTY(VisibleAnywhere, Category = Elimination)
+	TObjectPtr<UTimelineComponent> DissolveTimeline;
+	
+	FOnTimelineFloat DissolveTrack;
+	
+	UPROPERTY(EditAnywhere, Category = Elimination)
+	TObjectPtr<UCurveFloat> DissolveCurve;
+	
+	UFUNCTION()
+	void UpdateDissolveMaterial(float DissolveValue);
+	
+	void StartDissolve();
+	
+	// Dynamic instance that we can change at runtime.
+	UPROPERTY(VisibleAnywhere, Category = Elimination)
+	TObjectPtr<UMaterialInstanceDynamic> DynamicDissolveMaterialInstance;
+	
+	// The dissolve material (asset).
+	UPROPERTY(EditAnywhere, Category = Elimination)
+	TObjectPtr<UMaterialInstance> DissolveMaterialInstance;
 
 public:
 	/* Input Temporal aqui. No se si ponerlo en el controller.*/

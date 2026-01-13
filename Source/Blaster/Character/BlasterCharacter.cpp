@@ -23,7 +23,6 @@
 
 ABlasterCharacter::ABlasterCharacter()
 {
-	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 
 	// Create camera and SpringArm.
@@ -62,6 +61,12 @@ ABlasterCharacter::ABlasterCharacter()
 	// Health component.
 	HealthComponent = CreateDefaultSubobject<UHealthComponent>(TEXT("HealthComponent"));
 	HealthComponent->SetIsReplicated(true);
+	
+	// Always spawn. This is because there was an issue when a character should spawn but did not appear maybe because overlapping with something.
+	SpawnCollisionHandlingMethod = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
+	
+	// Dissolve Timeline component.
+	DissolveTimeline = CreateDefaultSubobject<UTimelineComponent>(TEXT("DissolveTimeline Component"));
 }
 
 void ABlasterCharacter::Tick(float DeltaTime)
@@ -489,9 +494,41 @@ void ABlasterCharacter::ElimTimerFinished()
 	}
 }
 
+void ABlasterCharacter::UpdateDissolveMaterial(float DissolveValue)
+{
+	if (DynamicDissolveMaterialInstance)
+	{
+		DynamicDissolveMaterialInstance->SetScalarParameterValue(TEXT("Dissolve"), DissolveValue); // This value is hard coded to the material of this project. Make sure name is correct.
+	}
+}
+
+void ABlasterCharacter::StartDissolve()
+{
+	DissolveTrack.BindDynamic(this, &ABlasterCharacter::UpdateDissolveMaterial);
+	if (DissolveCurve && DissolveTimeline)
+	{
+		DissolveTimeline->AddInterpFloat(DissolveCurve, DissolveTrack);
+		DissolveTimeline->Play();
+	}
+}
+
 void ABlasterCharacter::MulticastElim_Implementation()
 {
 	PlayElimMontage();
+	
+	// Set the dynamic dissolve material for each mesh material.
+	if (DissolveMaterialInstance)
+	{
+		DynamicDissolveMaterialInstance = UMaterialInstanceDynamic::Create(DissolveMaterialInstance, this);
+		for (auto Index = 0; Index<GetMesh()->GetNumMaterials(); ++Index)
+		{
+			GetMesh()->SetMaterial(Index,DynamicDissolveMaterialInstance);
+			DynamicDissolveMaterialInstance->SetScalarParameterValue(TEXT("Dissolve"), 0.55f /*Completely dissolved material. */);	// These values are hard coded to the material of this project. Make sure names are correct.
+			DynamicDissolveMaterialInstance->SetScalarParameterValue(TEXT("Glow"), 200.f);
+		}
+	}
+	// and start the dissolving effect.
+	StartDissolve();
 }
 
 void ABlasterCharacter::OnRep_OverlappingWeapon(AWeapon* LastWeapon)
