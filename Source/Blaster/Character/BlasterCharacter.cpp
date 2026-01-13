@@ -480,6 +480,10 @@ void ABlasterCharacter::UpdateHUD()
 
 void ABlasterCharacter::Elim()
 {
+	if (CombatComponent && CombatComponent->EquippedWeapon)
+	{
+		CombatComponent->EquippedWeapon->Drop();
+	}
 	MulticastElim();
 
 	// Start respawn timer.
@@ -516,6 +520,8 @@ void ABlasterCharacter::MulticastElim_Implementation()
 {
 	PlayElimMontage();
 	
+	/* Start dissolve effect. */
+	
 	// Set the dynamic dissolve material for each mesh material.
 	if (DissolveMaterialInstance)
 	{
@@ -529,6 +535,17 @@ void ABlasterCharacter::MulticastElim_Implementation()
 	}
 	// and start the dissolving effect.
 	StartDissolve();
+	
+	// Disable character movement.
+	GetCharacterMovement()->DisableMovement();
+	GetCharacterMovement()->StopMovementImmediately();
+	if (BlasterPlayerController)
+	{
+		DisableInput(BlasterPlayerController);
+	}
+	// Disable collision.
+	GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	GetMesh()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 }
 
 void ABlasterCharacter::OnRep_OverlappingWeapon(AWeapon* LastWeapon)

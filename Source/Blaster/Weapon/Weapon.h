@@ -37,6 +37,9 @@ public:
 	void ShowPickupWidget(bool bShowWidget);
 	/* Play Fire animation and spawn casings. */
 	virtual void Fire(const FVector& HitTarget);
+	
+	/** Mark as dropped and enable physics, gravity and collision. **/
+	void Drop();
 
 	void SetWeaponState(EWeaponState NewState);
 	/*
