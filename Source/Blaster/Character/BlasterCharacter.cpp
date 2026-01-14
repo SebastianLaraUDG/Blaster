@@ -475,22 +475,21 @@ void ABlasterCharacter::OnHealthChanged(float NewHealth, float DeltaHealth, ACon
 	UpdateHUD();
 	PlayHitReactMontage();
 	
+	const auto BlasterGameMode = GetWorld()->GetAuthGameMode<ABlasterGameMode>();
+
 	// Register death in game mode.
-	if (HealthComponent->GetCurrentHealth() == 0.f)
+	if (HealthComponent->GetCurrentHealth() == 0.f && BlasterGameMode)
 	{
-		if (const auto BlasterGameMode= GetWorld()->GetAuthGameMode<ABlasterGameMode>())
+		if (!BlasterPlayerController)
 		{
-			if (!BlasterPlayerController)
-			{
-				BlasterPlayerController = Cast<ABlasterPlayerController>(Controller);
-			}
-			if (!BlasterPlayerController) UE_LOG(LogTemp,Error, TEXT("Blaster player controller no es valido en ON HEALTH CHANGED en la clase %s. Local role: %d"),*ThisClass::StaticClass()->GetName(), GetLocalRole())
-			auto AttackerController = Cast<ABlasterPlayerController>(InstigatorController);
-			BlasterGameMode->PlayerEliminated(this,
-				BlasterPlayerController? BlasterPlayerController : nullptr,
-				AttackerController ? AttackerController : nullptr
-				);
+			BlasterPlayerController = Cast<ABlasterPlayerController>(Controller);
 		}
+		const auto AttackerController = Cast<ABlasterPlayerController>(InstigatorController
+		);
+		BlasterGameMode->PlayerEliminated(this,
+		                                  BlasterPlayerController ? BlasterPlayerController : nullptr,
+		                                  AttackerController ? AttackerController : nullptr
+		);
 	}
 }
 
