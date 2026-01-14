@@ -22,7 +22,7 @@ class UInputMappingContext;
 class UInputAction;
 class AWeapon;
 class UAnimMontage;
-
+class USoundCue;
 struct FInputActionValue;
 
 /*
