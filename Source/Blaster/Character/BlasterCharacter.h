@@ -43,6 +43,7 @@ public:
 	
 	virtual void OnRep_ReplicatedMovement() override;
 
+	// Updates health only.
 	UFUNCTION(BlueprintCallable, Category = HUD)
 	void UpdateHUD();
 	
@@ -205,7 +206,7 @@ private:
 	
 	UPROPERTY(EditAnywhere, Category = Elimination)
 	TObjectPtr<USoundCue> ElimBotSound;
-	
+
 public:
 	/* Input Temporal aqui. No se si ponerlo en el controller.*/
 

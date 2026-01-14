@@ -25,6 +25,8 @@
 #include "Kismet/GameplayStatics.h"
 #include "Sound/SoundCue.h"
 
+#include "Blaster/PlayerState/BlasterPlayerState.h"
+
 ABlasterCharacter::ABlasterCharacter()
 {
 	PrimaryActorTick.bCanEverTick = true;
@@ -96,6 +98,16 @@ void ABlasterCharacter::Tick(float DeltaTime)
 			OnRep_ReplicatedMovement();
 		}
 		CalculateAO_Pitch();
+	}
+	
+	// Always update score and defeat text on hud. DEBUG
+	if (auto BlasterPlayerState = GetPlayerState<ABlasterPlayerState>(); BlasterPlayerState && IsLocallyControlled())
+	{
+		if (BlasterPlayerState)
+		{
+			BlasterPlayerState->AddToScore(0.f);
+			BlasterPlayerState->AddToDefeats(0);
+		}
 	}
 	
 	HideCharacterIfCameraClose();
@@ -468,7 +480,12 @@ void ABlasterCharacter::OnHealthChanged(float NewHealth, float DeltaHealth, ACon
 	{
 		if (const auto BlasterGameMode= GetWorld()->GetAuthGameMode<ABlasterGameMode>())
 		{
-			const auto AttackerController = Cast<ABlasterPlayerController>(InstigatorController);
+			if (!BlasterPlayerController)
+			{
+				BlasterPlayerController = Cast<ABlasterPlayerController>(Controller);
+			}
+			if (!BlasterPlayerController) UE_LOG(LogTemp,Error, TEXT("Blaster player controller no es valido en ON HEALTH CHANGED en la clase %s. Local role: %d"),*ThisClass::StaticClass()->GetName(), GetLocalRole())
+			auto AttackerController = Cast<ABlasterPlayerController>(InstigatorController);
 			BlasterGameMode->PlayerEliminated(this,
 				BlasterPlayerController? BlasterPlayerController : nullptr,
 				AttackerController ? AttackerController : nullptr

@@ -49,7 +49,7 @@ private:
 	
 	// The instigator controller of the last damage taken event.
 	// Saved to call on OnRep_Health.
-	TObjectPtr<AController> LastInstigatorController;
+	TObjectPtr<AController> LastInstigatorController = nullptr;
 public:
 	
 	UFUNCTION(BlueprintPure, Category = Health)

@@ -24,12 +24,12 @@ void ABlasterPlayerController::SetHUDHealth(float Health, float MaxHealth)
 	{
 		BlasterHUD = Cast<ABlasterHUD>(GetHUD());
 	}
-	
-	
-	const bool bHUDValid = BlasterHUD && 
+
+
+	const bool bHUDValid = BlasterHUD &&
 		BlasterHUD->CharacterOverlay &&
-			BlasterHUD->CharacterOverlay->HealthBar &&
-		BlasterHUD->CharacterOverlay->HealthText;  
+		BlasterHUD->CharacterOverlay->HealthBar &&
+		BlasterHUD->CharacterOverlay->HealthText;
 	
 	if (bHUDValid)
 	{
@@ -39,6 +39,38 @@ void ABlasterPlayerController::SetHUDHealth(float Health, float MaxHealth)
 		// Text.
 		const FString HealthText = FString::Printf(TEXT("%d/%d"), FMath::CeilToInt32(Health), FMath::CeilToInt32(MaxHealth));
 		BlasterHUD->CharacterOverlay->HealthText->SetText(FText::FromString(HealthText));
+	}
+}
+
+void ABlasterPlayerController::SetHUDScore(const float& Score)
+{
+	if (!BlasterHUD)
+	{
+		BlasterHUD = Cast<ABlasterHUD>(GetHUD());
+	}
+	const bool bHUDValid = BlasterHUD &&
+		BlasterHUD->CharacterOverlay &&
+		BlasterHUD->CharacterOverlay->ScoreAmount;
+	if (bHUDValid)
+	{
+		const FString ScoreText = FString::Printf(TEXT("%d"), FMath::FloorToInt(Score));
+		BlasterHUD->CharacterOverlay->ScoreAmount->SetText(FText::FromString(ScoreText));
+	}
+}
+
+void ABlasterPlayerController::SetHUDDefeats(const int32& Defeats)
+{
+	if (!BlasterHUD)
+	{
+		BlasterHUD = Cast<ABlasterHUD>(GetHUD());
+	}
+	const bool bHUDValid = BlasterHUD &&
+		BlasterHUD->CharacterOverlay &&
+		BlasterHUD->CharacterOverlay->ScoreAmount;
+	if (bHUDValid)
+	{
+		const FString DefeatsText = FString::Printf(TEXT("%d"), Defeats);
+		BlasterHUD->CharacterOverlay->DefeatsAmount->SetText(FText::FromString(DefeatsText));
 	}
 }
 
