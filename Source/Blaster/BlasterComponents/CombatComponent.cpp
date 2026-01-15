@@ -120,7 +120,7 @@ void UCombatComponent::FireButtonPressed(bool bPressed)
 
 void UCombatComponent::Fire()
 {
-	if (!bCanFire) return;
+	if (!CanFire()) return;
 	
 	bCanFire = false;
 	ServerFire(HitTarget);
@@ -149,6 +149,8 @@ void UCombatComponent::FireTimerFinished()
 		Fire();
 	}
 }
+
+
 
 void UCombatComponent::ServerFire_Implementation(const FVector_NetQuantize& TraceHitTarget)
 {
@@ -336,4 +338,10 @@ void UCombatComponent::EquipWeapon(AWeapon* WeaponToEquip)
 	// Stop orienting rotation to movement. This is to allow leaning animations in animation blueprint.
 	Character->GetCharacterMovement()->bOrientRotationToMovement = false;
 	Character->bUseControllerRotationYaw = true;
+}
+
+bool UCombatComponent::CanFire() const
+{
+	if (!EquippedWeapon) return false;
+	return !EquippedWeapon->IsEmpty() && bCanFire;
 }

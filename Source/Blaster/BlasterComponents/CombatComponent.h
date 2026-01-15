@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Blaster/HUD/BlasterHUD.h"
+#include "Blaster/Weapon/Weapon.h"
 #include "Components/ActorComponent.h"
 #include "CombatComponent.generated.h"
 
@@ -158,4 +159,6 @@ private:
 	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Combat, meta = (AllowPrivateAccess = true))
 	float FireDelay;
+
+	bool CanFire() const;
 };
