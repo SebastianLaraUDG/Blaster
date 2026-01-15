@@ -55,11 +55,11 @@ protected:
 	void SetHUDCrosshairs(float DeltaTime);
 
 private:
-	
+//	UPROPERTY()
 	TObjectPtr<ABlasterCharacter> Character;
-	
+//	UPROPERTY()
 	TObjectPtr<ABlasterPlayerController> Controller;
-	
+//	UPROPERTY()
 	TObjectPtr<ABlasterHUD> HUD;
 
 	// Hand Socket Name.
