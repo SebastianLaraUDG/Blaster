@@ -10,7 +10,7 @@ class UProgressBar;
 class UTextBlock;
 
 /**
- * For displaying players information such as health.
+ * For displaying players information such as health, ammo, defeats and ammo.
  */
 UCLASS()
 class BLASTER_API UCharacterOverlay : public UUserWidget
@@ -28,4 +28,7 @@ public:
 	
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UTextBlock> ScoreAmount;
+	
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UTextBlock> WeaponAmmoAmount;
 };

@@ -9,7 +9,10 @@
 #include "Components/ProgressBar.h"
 #include "Components/TextBlock.h"
 
-
+/** 
+ * TODO: This script uses the same code many times with minor changes, so
+ * maybe I could refactor it to use functions and that way make it more readable.
+ */
 void ABlasterPlayerController::BeginPlay()
 {
 	Super::BeginPlay();
@@ -71,6 +74,22 @@ void ABlasterPlayerController::SetHUDDefeats(const int32& Defeats)
 	{
 		const FString DefeatsText = FString::Printf(TEXT("%d"), Defeats);
 		BlasterHUD->CharacterOverlay->DefeatsAmount->SetText(FText::FromString(DefeatsText));
+	}
+}
+
+void ABlasterPlayerController::SetHUDWeaponAmmo(const int32& Ammo)
+{
+	if (!BlasterHUD)
+	{
+		BlasterHUD = Cast<ABlasterHUD>(GetHUD());
+	}
+	const bool bHUDValid = BlasterHUD &&
+		BlasterHUD->CharacterOverlay &&
+		BlasterHUD->CharacterOverlay->WeaponAmmoAmount;
+	if (bHUDValid)
+	{
+		const FString AmmoText = FString::Printf(TEXT("%d"), Ammo);
+		BlasterHUD->CharacterOverlay->WeaponAmmoAmount->SetText(FText::FromString(AmmoText));
 	}
 }
 

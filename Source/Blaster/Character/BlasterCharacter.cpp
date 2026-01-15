@@ -550,6 +550,11 @@ void ABlasterCharacter::StartDissolve()
 
 void ABlasterCharacter::MulticastElim_Implementation()
 {
+	// Reset ammo text to zero.
+	if (BlasterPlayerController)
+	{
+		BlasterPlayerController->SetHUDWeaponAmmo(0);
+	}
 	PlayElimMontage();
 	
 	/* Start dissolve effect. */

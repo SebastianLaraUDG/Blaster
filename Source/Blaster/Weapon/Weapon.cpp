@@ -9,6 +9,7 @@
 #include "Blaster/Character/BlasterCharacter.h"
 #include "Net/UnrealNetwork.h"
 #include "Animation/AnimationAsset.h"
+#include "Blaster/PlayerController/BlasterPlayerController.h"
 #include "Engine/SkeletalMeshSocket.h"
 
 AWeapon::AWeapon()
@@ -71,6 +72,53 @@ void AWeapon::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeP
 
 	// Set Weapon State to replicate.
 	DOREPLIFETIME(AWeapon, WeaponState);
+	// Current ammo.
+	DOREPLIFETIME(AWeapon, Ammo)
+}
+
+void AWeapon::OnRep_Ammo()
+{
+	// TODO: if this crashes, use .Get().
+	BlasterOwnerCharacter = BlasterOwnerCharacter ? BlasterOwnerCharacter.Get() : Cast<ABlasterCharacter>(GetOwner());
+	SetHUDAmmo();
+}
+
+void AWeapon::SpendRound()
+{
+	--Ammo;
+	SetHUDAmmo();
+}
+
+void AWeapon::OnRep_Owner()
+{
+	Super::OnRep_Owner();
+	// Every time this weapon is picked up by a player we update the hud.
+	if (Owner)
+	{
+		SetHUDAmmo();
+	}
+	// or if it is dropped we clean references.
+	else
+	{
+		BlasterOwnerCharacter = nullptr;
+		BlasterOwnerController = nullptr;
+	}
+}
+
+void AWeapon::SetHUDAmmo()
+{
+	// TODO: if this crashes, use .Get().
+	BlasterOwnerCharacter = BlasterOwnerCharacter ? BlasterOwnerCharacter.Get() : Cast<ABlasterCharacter>(GetOwner());
+	if (!BlasterOwnerCharacter)
+	{
+		return;
+	}
+	// TODO: if this crashes, use .Get().
+	BlasterOwnerController = BlasterOwnerController ? BlasterOwnerController.Get() : Cast<ABlasterPlayerController>(BlasterOwnerCharacter->Controller);
+	if (BlasterOwnerController)
+	{
+		BlasterOwnerController->SetHUDWeaponAmmo(Ammo);
+	}
 }
 
 void AWeapon::ShowPickupWidget(bool bShowWidget)
@@ -98,6 +146,7 @@ void AWeapon::Fire(const FVector& HitTarget)
 				SocketTransform.GetRotation().Rotator());
 		}
 	}
+	SpendRound();
 }
 
 void AWeapon::Drop()
@@ -107,6 +156,9 @@ void AWeapon::Drop()
 	const FDetachmentTransformRules DetachRules(EDetachmentRule::KeepWorld,true);
 	WeaponMesh->DetachFromComponent(DetachRules);
 	SetOwner(nullptr);
+	// Clean references since this weapon is no longer being use by any player.
+	BlasterOwnerCharacter = nullptr;
+	BlasterOwnerController = nullptr;
 }
 
 void AWeapon::SetWeaponState(EWeaponState NewState)
@@ -137,6 +189,7 @@ void AWeapon::SetWeaponState(EWeaponState NewState)
 		break;
 	}
 }
+
 
 void AWeapon::OnRep_WeaponState()
 {

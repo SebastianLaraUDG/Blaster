@@ -19,10 +19,12 @@ public:
 	void SetHUDHealth(float Health, float MaxHealth);
 	void SetHUDScore(const float& Score);
 	void SetHUDDefeats(const int32& Defeats);
+	void SetHUDWeaponAmmo(const int32& Ammo);
 	virtual void OnPossess(APawn* InPawn) override;
 protected:
 	virtual void BeginPlay() override;
 	
 private:
+	
 	TObjectPtr<ABlasterHUD> BlasterHUD;
 };

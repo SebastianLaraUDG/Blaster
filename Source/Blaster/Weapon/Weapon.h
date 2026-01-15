@@ -6,6 +6,8 @@
 #include "GameFramework/Actor.h"
 #include "Weapon.generated.h"
 
+class ABlasterPlayerController;
+class ABlasterCharacter;
 class ACasing;
 class UWidgetComponent;
 class USphereComponent;
@@ -34,6 +36,8 @@ public:
 	AWeapon();
 	virtual void Tick(float DeltaTime) override;
 	virtual void GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const override;
+	virtual void OnRep_Owner() override;
+	void SetHUDAmmo();
 	void ShowPickupWidget(bool bShowWidget);
 	/* Play Fire animation and spawn casings. */
 	virtual void Fire(const FVector& HitTarget);
@@ -114,6 +118,26 @@ private:
 	
 	UPROPERTY(EditDefaultsOnly)
 	TSubclassOf<ACasing> CasingClass;
+	
+	/* Ammo. */
+	
+	// Current ammo amount.
+	UPROPERTY(ReplicatedUsing = OnRep_Ammo, EditAnywhere, Category = Ammo)
+	int32 Ammo = 1;
+	
+	UPROPERTY(EditAnywhere, Category = Ammo, meta = (ClampMin = 1))
+	int32 MagCapacity;
+	
+	// UPROPERTY()
+	TObjectPtr<ABlasterCharacter> BlasterOwnerCharacter;
+	
+	// UPROPERTY()
+	TObjectPtr<ABlasterPlayerController> BlasterOwnerController;
+	
+	UFUNCTION()
+	void OnRep_Ammo();
+	
+	void SpendRound();
 	
 	UFUNCTION()
 	void OnRep_WeaponState();

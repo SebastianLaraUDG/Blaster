@@ -317,6 +317,12 @@ void UCombatComponent::EquipWeapon(AWeapon* WeaponToEquip)
 {
 	if (!Character || !WeaponToEquip) return;
 
+	// Drop already equipped weapon.
+	if (EquippedWeapon)
+	{
+		EquippedWeapon->Drop();
+	}
+	
 	EquippedWeapon = WeaponToEquip;
 	EquippedWeapon->SetWeaponState(EWeaponState::EWS_Equipped);
 	// Attach to character's hand socket.
@@ -325,6 +331,7 @@ void UCombatComponent::EquipWeapon(AWeapon* WeaponToEquip)
 		HandSocket->AttachActor(EquippedWeapon, Character->GetMesh());
 	}
 	EquippedWeapon->SetOwner(Character);
+	EquippedWeapon->SetHUDAmmo();
 
 	// Stop orienting rotation to movement. This is to allow leaning animations in animation blueprint.
 	Character->GetCharacterMovement()->bOrientRotationToMovement = false;
