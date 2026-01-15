@@ -78,7 +78,7 @@ void AWeapon::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeP
 
 void AWeapon::OnRep_Ammo()
 {
-	// TODO: if this crashes, use .Get().
+	
 	BlasterOwnerCharacter = BlasterOwnerCharacter ? BlasterOwnerCharacter.Get() : Cast<ABlasterCharacter>(GetOwner());
 	SetHUDAmmo();
 }
@@ -107,13 +107,14 @@ void AWeapon::OnRep_Owner()
 
 void AWeapon::SetHUDAmmo()
 {
-	// TODO: if this crashes, use .Get().
+	
+
 	BlasterOwnerCharacter = BlasterOwnerCharacter ? BlasterOwnerCharacter.Get() : Cast<ABlasterCharacter>(GetOwner());
 	if (!BlasterOwnerCharacter)
 	{
 		return;
 	}
-	// TODO: if this crashes, use .Get().
+	
 	BlasterOwnerController = BlasterOwnerController ? BlasterOwnerController.Get() : Cast<ABlasterPlayerController>(BlasterOwnerCharacter->Controller);
 	if (BlasterOwnerController)
 	{
