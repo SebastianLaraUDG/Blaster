@@ -154,6 +154,7 @@ void ABlasterCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCo
 	EnhancedInput->BindAction(AimInputAction, ETriggerEvent::Completed, this, &ThisClass::AimStopped);
 	EnhancedInput->BindAction(FireInputAction, ETriggerEvent::Started, this, &ThisClass::FireWeaponPressed);
 	EnhancedInput->BindAction(FireInputAction, ETriggerEvent::Completed, this, &ThisClass::FireWeaponReleased);
+	EnhancedInput->BindAction(ReloadInputAction, ETriggerEvent::Started, this, &ThisClass::ReloadButtonPressed);
 }
 
 void ABlasterCharacter::GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const
@@ -187,6 +188,23 @@ void ABlasterCharacter::PlayFireMontage(bool bAiming)
 	}
 }
 
+void ABlasterCharacter::PlayReloadMontage() const
+{
+	if (!CombatComponent || !CombatComponent->EquippedWeapon || !ReloadMontage) return;
+
+	if (const auto AnimInstance = GetMesh()->GetAnimInstance())
+	{
+		AnimInstance->Montage_Play(ReloadMontage);
+		FName SectionName;
+		
+		switch (CombatComponent->EquippedWeapon->GetWeaponType())
+		{
+		case EWeaponType::EWT_AssaultRifle:		SectionName = FName("Rifle");	break;
+		}
+		AnimInstance->Montage_JumpToSection(SectionName);
+	}
+}
+
 void ABlasterCharacter::PlayElimMontage()
 {
 	UAnimInstance* const AnimInstance = GetMesh()->GetAnimInstance();
@@ -195,6 +213,8 @@ void ABlasterCharacter::PlayElimMontage()
 		AnimInstance->Montage_Play(ElimMontage);
 	}
 }
+
+
 
 void ABlasterCharacter::PlayHitReactMontage() const
 {
@@ -315,6 +335,14 @@ void ABlasterCharacter::FireWeaponReleased()
 	{
 		CombatComponent->FireButtonPressed(false);
 		UE_LOG(LogTemp, Display, TEXT("Character stopped shooting."));
+	}
+}
+
+void ABlasterCharacter::ReloadButtonPressed()
+{
+	if (CombatComponent)
+	{
+		CombatComponent->Reload();
 	}
 }
 
@@ -648,4 +676,10 @@ AWeapon* ABlasterCharacter::GetEquippedWeapon() const
 FVector ABlasterCharacter::GetHitTarget() const
 {
 	return CombatComponent ? CombatComponent->HitTarget : FVector();
+}
+
+ECombatState ABlasterCharacter::GetCombatState() const
+{
+	if (!CombatComponent) return ECombatState::ECS_MAX;
+	return CombatComponent->CombatState;
 }

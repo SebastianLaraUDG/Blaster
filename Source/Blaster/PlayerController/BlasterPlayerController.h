@@ -20,6 +20,7 @@ public:
 	void SetHUDScore(const float& Score);
 	void SetHUDDefeats(const int32& Defeats);
 	void SetHUDWeaponAmmo(const int32& Ammo);
+	void SetHUDWeaponCarriedAmmo(const int32& CarriedAmmo);
 	virtual void OnPossess(APawn* InPawn) override;
 protected:
 	virtual void BeginPlay() override;

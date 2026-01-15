@@ -99,4 +99,9 @@ private:
 	/* Dead */
 	UPROPERTY(BlueprintReadOnly, Category = Character, meta = (AllowPrivateAccess = "true"))
 	bool bIsDead = false;
+	
+	/* FABRIK */
+	UPROPERTY(BlueprintReadOnly, Category = Character, meta = (AllowPrivateAccess = "true"))
+	bool bUseFabrik;
+	
 };

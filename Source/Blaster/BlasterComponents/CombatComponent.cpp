@@ -21,6 +21,19 @@ UCombatComponent::UCombatComponent()
 	AimWalkSpeed = 450.f;
 }
 
+void UCombatComponent::GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+	// Replicate overlapping weapon.
+	DOREPLIFETIME(UCombatComponent, EquippedWeapon);
+	// Replicate aiming state.
+	DOREPLIFETIME(UCombatComponent, bIsAiming);
+	// Carried ammo replicated only on owner character.
+	DOREPLIFETIME_CONDITION(UCombatComponent, CarriedAmmo, COND_OwnerOnly);
+	// Combat state.
+	DOREPLIFETIME(UCombatComponent, CombatState);
+}
 
 void UCombatComponent::BeginPlay()
 {
@@ -35,6 +48,10 @@ void UCombatComponent::BeginPlay()
 		{
 			DefaultFOV = Character->GetCamera()->FieldOfView;
 			CurrentFOV = DefaultFOV;
+		}
+		if (Character->HasAuthority())
+		{
+			InitializeCarriedAmmo();
 		}
 	}
 }
@@ -52,16 +69,6 @@ void UCombatComponent::TickComponent(float DeltaTime, ELevelTick TickType,
 		SetHUDCrosshairs(DeltaTime);
 		InterpFOV(DeltaTime);
 	}
-}
-
-void UCombatComponent::GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const
-{
-	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
-
-	// Replicate overlapping weapon.
-	DOREPLIFETIME(UCombatComponent, EquippedWeapon);
-	// Replicate aiming state.
-	DOREPLIFETIME(UCombatComponent, bIsAiming);
 }
 
 void UCombatComponent::SetAiming(bool NewAiming)
@@ -334,6 +341,16 @@ void UCombatComponent::EquipWeapon(AWeapon* WeaponToEquip)
 	}
 	EquippedWeapon->SetOwner(Character);
 	EquippedWeapon->SetHUDAmmo();
+	
+	// Check if we have ammo of the current weapon type and display that amount.
+	if (CarriedAmmoMap.Contains(EquippedWeapon->GetWeaponType()))
+	{
+		CarriedAmmo = CarriedAmmoMap[EquippedWeapon->GetWeaponType()];
+	}
+	if (Controller = Controller ? Controller.Get() : Cast<ABlasterPlayerController>(Character->Controller); Controller)
+	{
+		Controller->SetHUDWeaponCarriedAmmo(CarriedAmmo);
+	}
 
 	// Stop orienting rotation to movement. This is to allow leaning animations in animation blueprint.
 	Character->GetCharacterMovement()->bOrientRotationToMovement = false;
@@ -345,3 +362,56 @@ bool UCombatComponent::CanFire() const
 	if (!EquippedWeapon) return false;
 	return !EquippedWeapon->IsEmpty() && bCanFire;
 }
+
+void UCombatComponent::Reload()
+{
+	// We can reload only if we have enough ammo, and we are not already reloading.
+	if (CarriedAmmo > 0 && CombatState != ECombatState::ECS_Reloading)
+	{
+		ServerReload();
+	}
+}
+
+void UCombatComponent::ServerReload_Implementation()
+{
+	if (!Character) return;
+	CombatState = ECombatState::ECS_Reloading;
+	HandleReload(); // Handle Reload for server.
+}
+
+void UCombatComponent::FinishReloading()
+{
+	if (Character && Character->HasAuthority())
+	{
+		CombatState = ECombatState::ECS_Unoccupied;
+	}
+}
+
+void UCombatComponent::OnRep_CombatState()
+{
+	switch (CombatState)
+	{
+		case ECombatState::ECS_Reloading:		 HandleReload();		 break; // Handle Reload for clients.
+	}
+}
+
+void UCombatComponent::HandleReload() const
+{
+	Character->PlayReloadMontage();
+}
+
+void UCombatComponent::OnRep_CarriedAmmo()
+{
+	Controller = Controller ? Controller.Get() : Cast<ABlasterPlayerController>(Character->Controller);
+	if (Controller)
+	{
+		Controller->SetHUDWeaponCarriedAmmo(CarriedAmmo);
+	}
+}
+
+void UCombatComponent::InitializeCarriedAmmo()
+{
+	CarriedAmmoMap.Emplace(EWeaponType::EWT_AssaultRifle, StartingARAmmo);
+}
+
+

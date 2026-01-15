@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "WeaponTypes.h"
 #include "GameFramework/Actor.h"
 #include "Weapon.generated.h"
 
@@ -134,6 +135,9 @@ private:
 	// UPROPERTY()
 	TObjectPtr<ABlasterPlayerController> BlasterOwnerController;
 	
+	UPROPERTY(EditAnywhere)
+	EWeaponType WeaponType;
+	
 	UFUNCTION()
 	void OnRep_Ammo();
 	
@@ -148,4 +152,5 @@ public:
 	FORCEINLINE float GetZoomFOV() const { return ZoomedFOV; }
 	FORCEINLINE float GetZoomInterpSpeed() const { return ZoomInterpSpeed; }
 	FORCEINLINE bool IsEmpty() const { return Ammo <= 0; }
+	FORCEINLINE EWeaponType GetWeaponType() const { return WeaponType; }
 };

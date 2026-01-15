@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "Blaster/BlasterTypes/CombatState.h"
 #include "GameFramework/Character.h"
 #include "Blaster/BlasterTypes/TurningInPlace.h"
 #include "Blaster/Interfaces/InteractWithCrosshairsInterface.h"
@@ -40,6 +41,7 @@ public:
 	virtual void GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const override;
 	virtual void PostInitializeComponents() override;
 	void PlayFireMontage(bool bAiming);
+	void PlayReloadMontage() const;
 	
 	virtual void OnRep_ReplicatedMovement() override;
 
@@ -72,6 +74,9 @@ protected:
 	// Firing weapon.
 	void FireWeaponPressed();
 	void FireWeaponReleased();
+	// Reloading weapon.
+	void ReloadButtonPressed();
+	
 	// Ignores velocity in Z axis.
 	float CalculateSpeed() const;
 
@@ -129,9 +134,16 @@ private:
 	
 	ETurningInPlace TurningInPlace;
 	void TurnInPlace(float DeltaTime);
+
+	/**
+	 * Animation montages.
+	 */
 	
 	UPROPERTY(EditAnywhere, Category = Combat)
 	TObjectPtr<UAnimMontage> FireWeaponMontage;
+	
+	UPROPERTY(EditAnywhere, Category = Combat)
+	TObjectPtr<UAnimMontage> ReloadMontage;
 	
 	UPROPERTY(EditAnywhere, Category = Combat)
 	TObjectPtr<UAnimMontage> HitReactMontage;
@@ -161,7 +173,7 @@ private:
 	TObjectPtr<ABlasterPlayerController> BlasterPlayerController;
 	
 	
-	void PlayElimMontage(); // TODO: make private?	
+	void PlayElimMontage();
 	
 	void OnHealthChanged(float NewHealth, float DeltaHealth, AController* InstigatorController);
 	
@@ -241,6 +253,9 @@ public:
 
 	UPROPERTY(EditAnywhere, Category = Input)
 	TObjectPtr<UInputAction> FireInputAction;
+	
+	UPROPERTY(EditAnywhere, Category = Input)
+	TObjectPtr<UInputAction> ReloadInputAction;
 
 	/*~ Fin de seccion de inputs. */
 	
@@ -255,4 +270,5 @@ public:
 	FORCEINLINE UCameraComponent* GetCamera() const { return Camera; }
 	FORCEINLINE bool ShouldRotateRootBone() const { return bRotateRootBone; }
 	FORCEINLINE UHealthComponent* GetHealthComponent() const { return HealthComponent; }
+	ECombatState GetCombatState() const;
 };

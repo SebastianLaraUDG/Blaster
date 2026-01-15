@@ -7,6 +7,7 @@
 #include "Blaster/Weapon/Weapon.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Kismet/KismetMathLibrary.h"
+#include "Blaster/BlasterTypes/CombatState.h"
 
 void UBlasterAnimInstance::NativeInitializeAnimation()
 {
@@ -111,4 +112,6 @@ void UBlasterAnimInstance::NativeUpdateAnimation(const float DeltaSeconds)
 	}
 
 	bIsDead = BlasterCharacter ? BlasterCharacter->GetHealthComponent()->IsDead() : false;
+	// Only use FABRIK (adjusting left hand algorithm) when character is not reloading.
+	bUseFabrik = BlasterCharacter->GetCombatState() != ECombatState::ECS_Reloading;
 }

@@ -3,9 +3,11 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "Blaster/BlasterTypes/CombatState.h"
 #include "Blaster/HUD/BlasterHUD.h"
 #include "Blaster/Weapon/Weapon.h"
 #include "Components/ActorComponent.h"
+#include "Blaster/Weapon/WeaponTypes.h"
 #include "CombatComponent.generated.h"
 
 class ABlasterHUD;
@@ -17,6 +19,8 @@ class ABlasterCharacter;
  * Combat component. Responsible for all combat functionality.
  * To support left hand FABRIK make sure the Skeletal mesh contains a socket
  * "LeftHandSocket".
+ * 
+ * To be able to reload you must add a notify in you Montage
  */
 UCLASS(ClassGroup=(Custom), meta=(BlueprintSpawnableComponent))
 class BLASTER_API UCombatComponent : public UActorComponent
@@ -30,6 +34,11 @@ public:
 	                           FActorComponentTickFunction* ThisTickFunction) override;
 	virtual void GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const override;
 	void EquipWeapon(AWeapon* WeaponToEquip);
+	void Reload();
+	
+	// Designed to be called from notifies. Set combat state to Unoccupied in server.
+	UFUNCTION(BlueprintCallable)
+	void FinishReloading();
 
 protected:
 	virtual void BeginPlay() override;
@@ -54,6 +63,11 @@ protected:
 	void TraceUnderCrosshairs(FHitResult& TraceHitResult);
 	
 	void SetHUDCrosshairs(float DeltaTime);
+	
+	UFUNCTION(Server, Reliable)
+	void ServerReload();
+	// Play character reload montage.
+	void HandleReload() const;
 
 private:
 //	UPROPERTY()
@@ -161,4 +175,24 @@ private:
 	float FireDelay;
 
 	bool CanFire() const;
+	
+	// Carried ammo for the currently-equipped weapon
+	UPROPERTY(ReplicatedUsing = OnRep_CarriedAmmo)
+	int32 CarriedAmmo;
+	
+	UFUNCTION()
+	void OnRep_CarriedAmmo();
+	
+	TMap<EWeaponType, int32> CarriedAmmoMap;
+	
+	UPROPERTY(EditAnywhere)
+	int32 StartingARAmmo = 30;
+	
+	void InitializeCarriedAmmo();
+	
+	UPROPERTY(ReplicatedUsing = OnRep_CombatState, VisibleAnywhere)
+	ECombatState CombatState = ECombatState::ECS_Unoccupied;
+	
+	UFUNCTION()
+	void OnRep_CombatState();
 };
