@@ -37,4 +37,7 @@ public:
 	
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UTextBlock> EquippedWeaponName;
+	
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UTextBlock> MatchCountDownText;
 };

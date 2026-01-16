@@ -18,8 +18,13 @@ void ABlasterPlayerController::BeginPlay()
 	Super::BeginPlay();
 	
 	BlasterHUD = Cast<ABlasterHUD>(GetHUD());
-	
+	// Start timer to check server-client time sync.
+	// Update time HUD and check time sync. 
+	GetWorldTimerManager().SetTimer(CountdownTimer, this, &ThisClass::SetHUDTime, TimeSyncFrequency, true);
+	// TODO: stop timer when game ends.
 }
+
+
 
 void ABlasterPlayerController::SetHUDHealth(float Health, float MaxHealth)
 {
@@ -137,13 +142,13 @@ void ABlasterPlayerController::SetHUDEquippedWeaponName(EWeaponType WeaponType)
 		
 #else
 		// Empty text.
-		if (EquippedWeaponName == EWeaponType::EWT_MAX)
+		if (WeaponType == EWeaponType::EWT_MAX)
 		{
 			EquippedWeaponName = FText::FromString(TEXT(""));			
 		}
 		else
 		{
-			EquippedWeaponName = UEnum::GetDisplayValueAsText<EWeaponType>(WeaponType);	
+			EquippedWeaponName = StaticEnum<EWeaponType>()->GetDisplayNameTextByValue(static_cast<int64>(WeaponType));/*Deprecated UEnum::GetDisplayValueAsText<EWeaponType>(WeaponType);*/
 		}
 		
 #endif
@@ -151,6 +156,70 @@ void ABlasterPlayerController::SetHUDEquippedWeaponName(EWeaponType WeaponType)
 	}
 }
 
+void ABlasterPlayerController::SetHUDMatchCountdown(const float& CountdownTime)
+{
+	if (!BlasterHUD)
+	{
+		BlasterHUD = Cast<ABlasterHUD>(GetHUD());
+	}
+	const bool bHUDValid = BlasterHUD &&
+		BlasterHUD->CharacterOverlay &&
+		BlasterHUD->CharacterOverlay->MatchCountDownText;
+	if (bHUDValid)
+	{
+		const int32 Minutes = FMath::FloorToInt(CountdownTime / 60.f);
+		const int32 Seconds = CountdownTime - Minutes * 60.f;
+		
+		const FString CountdownText = FString::Printf(TEXT("%02d:%02d"), Minutes, Seconds);
+		BlasterHUD->CharacterOverlay->MatchCountDownText->SetText(FText::FromString(CountdownText));
+	}
+}
+
+void ABlasterPlayerController::SetHUDTime()
+{
+	//CheckTimeSync();
+	const uint32 SecondsLeft = FMath::CeilToInt(MatchTime - GetServerTime());
+	if (CountdownInt != SecondsLeft)
+	{
+		SetHUDMatchCountdown(MatchTime - GetServerTime());
+	}
+	CountdownInt = SecondsLeft;
+	
+	CheckTimeSync();
+}
+
+// ~Begin Time Sync interface.
+
+void ABlasterPlayerController::ServerRequestServerTime_Implementation(const float& TimeOfClientRequest)
+{
+	const float ServerTimeOfReceipt = GetWorld()->GetTimeSeconds();
+	ClientReportServerTime(TimeOfClientRequest, ServerTimeOfReceipt);
+}
+
+void ABlasterPlayerController::ClientReportServerTime_Implementation(const float& TimeOfClientRequest,
+	const float& TimeServerReceivedClientRequest)
+{
+	// The time it took for the client request to get to the server.
+	const float RoundTripTime = GetWorld()->GetTimeSeconds() - TimeOfClientRequest;
+	const float CurrentServerTime = TimeServerReceivedClientRequest + 0.5f * RoundTripTime; // Dividing by two is just an approximation.
+	ClientServerDelta = CurrentServerTime - GetWorld()->GetTimeSeconds();
+}
+
+void ABlasterPlayerController::CheckTimeSync()
+{
+	if (IsLocalController())
+	{
+		ServerRequestServerTime(GetWorld()->GetTimeSeconds());
+	}
+}
+
+float ABlasterPlayerController::GetServerTime() const
+{
+	if (HasAuthority()) return GetWorld()->GetTimeSeconds();
+	return GetWorld()->GetTimeSeconds() + ClientServerDelta;
+}
+
+// ~End Time Sync interface.
 
 void ABlasterPlayerController::OnPossess(APawn* InPawn)
 {
@@ -162,5 +231,14 @@ void ABlasterPlayerController::OnPossess(APawn* InPawn)
 	if (auto BlasterCharacter = Cast<ABlasterCharacter>(InPawn))
 	{
 		BlasterCharacter->UpdateHUD();
+	}
+}
+
+void ABlasterPlayerController::ReceivedPlayer()
+{
+	Super::ReceivedPlayer();
+	if (IsLocalController())
+	{
+		ServerRequestServerTime(GetWorld()->GetTimeSeconds());
 	}
 }

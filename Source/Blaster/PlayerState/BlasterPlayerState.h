@@ -10,7 +10,7 @@ class ABlasterPlayerController;
 class ABlasterCharacter;
 
 /**
- * 
+ *  In charge of score and defeats.
  */
 UCLASS()
 class BLASTER_API ABlasterPlayerState : public APlayerState
