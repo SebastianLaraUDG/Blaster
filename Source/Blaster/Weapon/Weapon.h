@@ -90,6 +90,9 @@ public:
 	UPROPERTY(EditAnywhere, Category = Combat)
 	bool bAutomatic = true;
 	
+	UPROPERTY(EditAnywhere, Category = Reload)
+	bool bAutomaticReload = true;
+	
 	UPROPERTY(EditAnywhere)
 	TObjectPtr<USoundCue> EquipSound;
 	

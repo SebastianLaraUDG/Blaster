@@ -161,6 +161,11 @@ void UCombatComponent::FireTimerFinished()
 	{
 		Fire();
 	}
+	// Auto-reload (if specified).
+	if (EquippedWeapon->bAutomaticReload && EquippedWeapon->IsEmpty())
+	{
+		Reload();
+	}
 }
 
 
@@ -362,6 +367,12 @@ void UCombatComponent::EquipWeapon(AWeapon* WeaponToEquip)
 	if (EquippedWeapon->EquipSound)
 	{
 		UGameplayStatics::SpawnSoundAtLocation(this, EquippedWeapon->EquipSound, Character->GetActorLocation());
+	}
+	
+	// Auto-reload (if specified).
+	if (EquippedWeapon->bAutomaticReload && EquippedWeapon->IsEmpty())
+	{
+		Reload();
 	}
 	
 	// Stop orienting rotation to movement. This is to allow leaning animations in animation blueprint.
