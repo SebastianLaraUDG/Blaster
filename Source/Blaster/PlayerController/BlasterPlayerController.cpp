@@ -131,10 +131,20 @@ void ABlasterPlayerController::SetHUDEquippedWeaponName(EWeaponType WeaponType)
 		switch (WeaponType)
 		{
 		case EWeaponType::EWT_AssaultRifle: EquippedWeaponName = FText::FromString(TEXT("Assault Rifle")); break;
+			// Empty text.
+		case EWeaponType::EWT_MAX:	EquippedWeaponName = FText::FromString(TEXT("")); break;
 		}
 		
 #else
-		EquippedWeaponName = UEnum::GetDisplayValueAsText<EWeaponType>(WeaponType);
+		// Empty text.
+		if (EquippedWeaponName == EWeaponType::EWT_MAX)
+		{
+			EquippedWeaponName = FText::FromString(TEXT(""));			
+		}
+		else
+		{
+			EquippedWeaponName = UEnum::GetDisplayValueAsText<EWeaponType>(WeaponType);	
+		}
 		
 #endif
 		BlasterHUD->CharacterOverlay->EquippedWeaponName->SetText(EquippedWeaponName);

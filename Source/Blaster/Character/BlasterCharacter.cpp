@@ -578,10 +578,13 @@ void ABlasterCharacter::StartDissolve()
 
 void ABlasterCharacter::MulticastElim_Implementation()
 {
-	// Reset ammo text to zero.
+	
 	if (BlasterPlayerController)
 	{
+		// Reset ammo text to zero.
 		BlasterPlayerController->SetHUDWeaponAmmo(0);
+		// Clean equipped weapon name.
+		BlasterPlayerController->SetHUDEquippedWeaponName(EWeaponType::EWT_MAX);
 	}
 	PlayElimMontage();
 	
