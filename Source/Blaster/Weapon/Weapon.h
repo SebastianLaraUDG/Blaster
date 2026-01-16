@@ -47,6 +47,9 @@ public:
 	void Drop();
 
 	void SetWeaponState(EWeaponState NewState);
+	
+	void AddAmmo(const int32& AmmoToAdd);
+	
 	/*
 	* Textures for the weapon crosshairs.
 	*/
@@ -151,6 +154,9 @@ public:
 	FORCEINLINE USkeletalMeshComponent* GetMesh() const { return WeaponMesh; }
 	FORCEINLINE float GetZoomFOV() const { return ZoomedFOV; }
 	FORCEINLINE float GetZoomInterpSpeed() const { return ZoomInterpSpeed; }
+	// Refers to ammo amount.
 	FORCEINLINE bool IsEmpty() const { return Ammo <= 0; }
 	FORCEINLINE EWeaponType GetWeaponType() const { return WeaponType; }
+	FORCEINLINE int32 GetAmmo() const { return Ammo; }
+	FORCEINLINE int32 GetMagCapacity() const { return MagCapacity; }
 };

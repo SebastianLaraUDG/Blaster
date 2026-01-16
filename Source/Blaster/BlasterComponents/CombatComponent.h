@@ -20,7 +20,8 @@ class ABlasterCharacter;
  * To support left hand FABRIK make sure the Skeletal mesh contains a socket
  * "LeftHandSocket".
  * 
- * To be able to reload you must add a notify in you Montage
+ * To be able to reload you must add a notify in you Montage and in your animation blueprint
+ * implement that notify, adding the FinishReloading function node.
  */
 UCLASS(ClassGroup=(Custom), meta=(BlueprintSpawnableComponent))
 class BLASTER_API UCombatComponent : public UActorComponent
@@ -66,9 +67,12 @@ protected:
 	
 	UFUNCTION(Server, Reliable)
 	void ServerReload();
+	
 	// Play character reload montage.
 	void HandleReload() const;
 
+	// Calculates 
+	int32 AmountToReload() const;
 private:
 //	UPROPERTY()
 	TObjectPtr<ABlasterCharacter> Character;
@@ -195,4 +199,6 @@ private:
 	
 	UFUNCTION()
 	void OnRep_CombatState();
+	
+	void UpdateAmmoValues();
 };

@@ -106,8 +106,6 @@ void AWeapon::OnRep_Owner()
 
 void AWeapon::SetHUDAmmo()
 {
-	
-
 	BlasterOwnerCharacter = BlasterOwnerCharacter ? BlasterOwnerCharacter.Get() : Cast<ABlasterCharacter>(GetOwner());
 	if (!BlasterOwnerCharacter)
 	{
@@ -159,6 +157,12 @@ void AWeapon::Drop()
 	// Clean references since this weapon is no longer being use by any player.
 	BlasterOwnerCharacter = nullptr;
 	BlasterOwnerController = nullptr;
+}
+
+void AWeapon::AddAmmo(const int32& AmmoToAdd)
+{
+	Ammo = FMath::Clamp(Ammo + AmmoToAdd,0, MagCapacity);
+	SetHUDAmmo();
 }
 
 void AWeapon::SetWeaponState(EWeaponState NewState)
@@ -219,7 +223,6 @@ void AWeapon::OnSphereBeginOverlap(UPrimitiveComponent* OverlappedComponent, AAc
 	if (BlasterCharacter && PickupWidget)
 	{
 		BlasterCharacter->SetOverlappingWeapon(this);
-		// PickupWidget->SetVisibility(true);
 	}
 }
 
