@@ -388,8 +388,8 @@ bool UCombatComponent::CanFire() const
 
 void UCombatComponent::Reload()
 {
-	// We can reload only if we have enough ammo, and we are not already reloading.
-	if (CarriedAmmo > 0 && CombatState != ECombatState::ECS_Reloading)
+	// We can reload only if we have enough ammo, we have fired at least one projectile of the current magazine, and we are not already reloading.
+	if (CarriedAmmo > 0 && EquippedWeapon->GetAmmo() < EquippedWeapon->GetMagCapacity() && CombatState != ECombatState::ECS_Reloading)
 	{
 		ServerReload();
 	}
@@ -476,7 +476,6 @@ void UCombatComponent::OnRep_CarriedAmmo()
 	Controller = Controller ? Controller.Get() : Cast<ABlasterPlayerController>(Character->Controller);
 	if (Controller)
 	{
-		Controller->SetHUDWeaponCarriedAmmo(CarriedAmmo);
 		Controller->SetHUDWeaponCarriedAmmo(CarriedAmmo);
 	}
 }
