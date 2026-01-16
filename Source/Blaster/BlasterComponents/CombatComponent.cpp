@@ -116,6 +116,10 @@ void UCombatComponent::OnRep_EquippedWeapon()
 		{
 			UGameplayStatics::PlaySoundAtLocation(this, EquippedWeapon->EquipSound, Character->GetActorLocation());
 		}
+		if (Controller)
+		{
+			Controller->SetHUDEquippedWeaponName(EquippedWeapon->GetWeaponType());
+		}
 	}
 }
 
@@ -362,6 +366,7 @@ void UCombatComponent::EquipWeapon(AWeapon* WeaponToEquip)
 	if (Controller = Controller ? Controller.Get() : Cast<ABlasterPlayerController>(Character->Controller); Controller)
 	{
 		Controller->SetHUDWeaponCarriedAmmo(CarriedAmmo);
+		Controller->SetHUDEquippedWeaponName(EquippedWeapon->GetWeaponType());
 	}
 	// Play sound when equipped.
 	if (EquippedWeapon->EquipSound)

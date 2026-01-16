@@ -109,6 +109,39 @@ void ABlasterPlayerController::SetHUDWeaponCarriedAmmo(const int32& CarriedAmmo)
 	}
 }
 
+void ABlasterPlayerController::SetHUDEquippedWeaponName(EWeaponType WeaponType)
+{
+	if (!BlasterHUD)
+	{
+		BlasterHUD = Cast<ABlasterHUD>(GetHUD());
+	}
+	const bool bHUDValid = BlasterHUD &&
+		BlasterHUD->CharacterOverlay &&
+		BlasterHUD->CharacterOverlay->EquippedWeaponName;
+	
+	if (bHUDValid)
+	{
+		FText EquippedWeaponName;
+		
+		/**
+		 * With a packaged game, GetDisplayValueAsText() will not return the display name,
+		 * but the enum name as in, EWT_AssaultRifle, without the enum class name. 
+		*/
+#if WITH_EDITOR
+		switch (WeaponType)
+		{
+		case EWeaponType::EWT_AssaultRifle: EquippedWeaponName = FText::FromString(TEXT("Assault Rifle")); break;
+		}
+		
+#else
+		EquippedWeaponName = UEnum::GetDisplayValueAsText<EWeaponType>(WeaponType);
+		
+#endif
+		BlasterHUD->CharacterOverlay->EquippedWeaponName->SetText(EquippedWeaponName);
+	}
+}
+
+
 void ABlasterPlayerController::OnPossess(APawn* InPawn)
 {
 	Super::OnPossess(InPawn);

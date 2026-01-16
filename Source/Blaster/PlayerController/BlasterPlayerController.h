@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/PlayerController.h"
+#include "Blaster/Weapon/WeaponTypes.h"
 #include "BlasterPlayerController.generated.h"
 
 class ABlasterHUD;
@@ -21,6 +22,7 @@ public:
 	void SetHUDDefeats(const int32& Defeats);
 	void SetHUDWeaponAmmo(const int32& Ammo);
 	void SetHUDWeaponCarriedAmmo(const int32& CarriedAmmo);
+	void SetHUDEquippedWeaponName(EWeaponType WeaponType);
 	virtual void OnPossess(APawn* InPawn) override;
 protected:
 	virtual void BeginPlay() override;
