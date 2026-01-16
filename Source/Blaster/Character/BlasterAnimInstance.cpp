@@ -114,4 +114,6 @@ void UBlasterAnimInstance::NativeUpdateAnimation(const float DeltaSeconds)
 	bIsDead = BlasterCharacter ? BlasterCharacter->GetHealthComponent()->IsDead() : false;
 	// Only use FABRIK (adjusting left hand algorithm) when character is not reloading.
 	bUseFabrik = BlasterCharacter->GetCombatState() != ECombatState::ECS_Reloading;
+	bUseAimOffsets = BlasterCharacter->GetCombatState() != ECombatState::ECS_Reloading;
+	bTransformRightHand = BlasterCharacter->GetCombatState() != ECombatState::ECS_Reloading;
 }

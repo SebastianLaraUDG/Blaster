@@ -12,6 +12,7 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "Net/UnrealNetwork.h"
+#include "Sound/SoundCue.h"
 
 UCombatComponent::UCombatComponent()
 {
@@ -110,6 +111,11 @@ void UCombatComponent::OnRep_EquippedWeapon()
 		}
 		Character->GetCharacterMovement()->bOrientRotationToMovement = false;
 		Character->bUseControllerRotationYaw = true;
+		// Play sound when equipped.
+		if (EquippedWeapon->EquipSound)
+		{
+			UGameplayStatics::PlaySoundAtLocation(this, EquippedWeapon->EquipSound, Character->GetActorLocation());
+		}
 	}
 }
 
@@ -352,7 +358,12 @@ void UCombatComponent::EquipWeapon(AWeapon* WeaponToEquip)
 	{
 		Controller->SetHUDWeaponCarriedAmmo(CarriedAmmo);
 	}
-
+	// Play sound when equipped.
+	if (EquippedWeapon->EquipSound)
+	{
+		UGameplayStatics::SpawnSoundAtLocation(this, EquippedWeapon->EquipSound, Character->GetActorLocation());
+	}
+	
 	// Stop orienting rotation to movement. This is to allow leaning animations in animation blueprint.
 	Character->GetCharacterMovement()->bOrientRotationToMovement = false;
 	Character->bUseControllerRotationYaw = true;

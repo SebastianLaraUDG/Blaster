@@ -14,6 +14,7 @@ class UWidgetComponent;
 class USphereComponent;
 class USkeletalMeshComponent;
 class UAnimationAsset;
+class USoundCue;
 
 UENUM(BlueprintType)
 enum class EWeaponState : uint8
@@ -88,6 +89,9 @@ public:
 	
 	UPROPERTY(EditAnywhere, Category = Combat)
 	bool bAutomatic = true;
+	
+	UPROPERTY(EditAnywhere)
+	TObjectPtr<USoundCue> EquipSound;
 	
 protected:
 	virtual void BeginPlay() override;
