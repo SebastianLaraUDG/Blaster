@@ -8,6 +8,31 @@
 #include "Kismet/GameplayStatics.h"
 #include "Blaster/PlayerState/BlasterPlayerState.h"
 
+ABlasterGameMode::ABlasterGameMode()
+{
+	bDelayedStart = true;
+}
+
+void ABlasterGameMode::HandleMatchIsWaitingToStart()
+{
+	Super::HandleMatchIsWaitingToStart();
+	
+	/** Lambda */
+	FTimerDelegate TimerCallback = FTimerDelegate::CreateLambda([this]()
+	{
+		// Run only the first time the match starts.
+		if (!HasMatchStarted())
+		{
+			// Start match and clear timer.
+			StartMatch();
+			GetWorldTimerManager().ClearTimer(WarmupStateTimer);
+		}
+	});
+	
+	// Run a timer to start match.
+	GetWorldTimerManager().SetTimer(WarmupStateTimer, TimerCallback, WarmupTime, false);
+}
+
 void ABlasterGameMode::PlayerEliminated(ABlasterCharacter* ElimmedCharacter, ABlasterPlayerController* VictimController,
                                         ABlasterPlayerController* AttackerController) const
 {
