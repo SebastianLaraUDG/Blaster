@@ -24,12 +24,12 @@ public:
 	 * HUD
 	 */
 	void SetHUDHealth(float Health, float MaxHealth);
-	void SetHUDScore(const float& Score);
-	void SetHUDDefeats(const int32& Defeats);
-	void SetHUDWeaponAmmo(const int32& Ammo);
-	void SetHUDWeaponCarriedAmmo(const int32& CarriedAmmo);
+	void SetHUDScore(const float Score);
+	void SetHUDDefeats(const int32 Defeats);
+	void SetHUDWeaponAmmo(const int32 Ammo);
+	void SetHUDWeaponCarriedAmmo(const int32 CarriedAmmo);
 	void SetHUDEquippedWeaponName(EWeaponType WeaponType);
-	void SetHUDMatchCountdown(const float& CountdownTime);
+	void SetHUDMatchCountdown(const float CountdownTime);
 	
 	void OnMatchStateSet(const FName& State);
 

@@ -59,7 +59,7 @@ void ABlasterPlayerController::SetHUDHealth(float Health, float MaxHealth)
 	}
 }
 
-void ABlasterPlayerController::SetHUDScore(const float& Score)
+void ABlasterPlayerController::SetHUDScore(const float Score)
 {
 	if (!BlasterHUD)
 	{
@@ -75,7 +75,7 @@ void ABlasterPlayerController::SetHUDScore(const float& Score)
 	}
 }
 
-void ABlasterPlayerController::SetHUDDefeats(const int32& Defeats)
+void ABlasterPlayerController::SetHUDDefeats(const int32 Defeats)
 {
 	if (!BlasterHUD)
 	{
@@ -91,7 +91,7 @@ void ABlasterPlayerController::SetHUDDefeats(const int32& Defeats)
 	}
 }
 
-void ABlasterPlayerController::SetHUDWeaponAmmo(const int32& Ammo)
+void ABlasterPlayerController::SetHUDWeaponAmmo(const int32 Ammo)
 {
 	if (!BlasterHUD)
 	{
@@ -107,7 +107,7 @@ void ABlasterPlayerController::SetHUDWeaponAmmo(const int32& Ammo)
 	}
 }
 
-void ABlasterPlayerController::SetHUDWeaponCarriedAmmo(const int32& CarriedAmmo)
+void ABlasterPlayerController::SetHUDWeaponCarriedAmmo(const int32 CarriedAmmo)
 {
 	if (!BlasterHUD)
 	{
@@ -165,7 +165,7 @@ void ABlasterPlayerController::SetHUDEquippedWeaponName(EWeaponType WeaponType)
 	}
 }
 
-void ABlasterPlayerController::SetHUDMatchCountdown(const float& CountdownTime)
+void ABlasterPlayerController::SetHUDMatchCountdown(const float CountdownTime)
 {	
 	BlasterHUD = BlasterHUD ? BlasterHUD.Get() : Cast<ABlasterHUD>(GetHUD());
 	
@@ -184,7 +184,6 @@ void ABlasterPlayerController::SetHUDMatchCountdown(const float& CountdownTime)
 
 void ABlasterPlayerController::SetHUDTime()
 {
-	// CheckTimeSync();
 	const uint32 SecondsLeft = FMath::CeilToInt(MatchTime - GetServerTime());
 	if (CountdownInt != SecondsLeft)
 	{
