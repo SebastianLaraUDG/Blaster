@@ -21,12 +21,18 @@ public:
 	virtual void PlayerEliminated(ABlasterCharacter* ElimmedCharacter, ABlasterPlayerController* VictimController, ABlasterPlayerController* AttackerController) const;
 	virtual void RequestRespawn(ACharacter* ElimmedCharacter, AController* ElimmedController);
 	
-	// How long the player will control an invisible flying pawn before
-	// match begins.
+	// How long the player will control an invisible
+	// flying pawn before match begins.
 	UPROPERTY(EditDefaultsOnly)
 	float WarmupTime = 10.f;
+	
+	UPROPERTY(EditDefaultsOnly)
+	float MatchTime = 120.f;
 
+	float LevelStartingTime = 0.f;
+	
 protected:
+	virtual void BeginPlay() override;
 	virtual void HandleMatchIsWaitingToStart() override;
 	virtual void OnMatchStateSet() override;
 private:

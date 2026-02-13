@@ -13,6 +13,12 @@ ABlasterGameMode::ABlasterGameMode()
 	bDelayedStart = true;
 }
 
+void ABlasterGameMode::BeginPlay()
+{
+	Super::BeginPlay();
+	LevelStartingTime = GetWorld()->GetTimeSeconds();
+}
+
 void ABlasterGameMode::HandleMatchIsWaitingToStart()
 {
 	Super::HandleMatchIsWaitingToStart();

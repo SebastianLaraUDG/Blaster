@@ -30,12 +30,15 @@ public:
 	void SetHUDWeaponCarriedAmmo(const int32 CarriedAmmo);
 	void SetHUDEquippedWeaponName(EWeaponType WeaponType);
 	void SetHUDMatchCountdown(const float CountdownTime);
+	void SetHUDAnnouncementCountdown(float CountdownTime); // Same as SetHUDMatchCountdown, but with a different TextBlock. TODO: checks and calculations could be refactorized into a separate function to make cleaner code.
 	
 	void OnMatchStateSet(const FName& State);
 
 protected:
 	virtual void BeginPlay() override;
+	
 	// Set HUD time and check time sync.
+	// It displays time according to match or announcement case.
 	void SetHUDTime();
 	
 	virtual float GetServerTime() const; // Synced with server world clock.
@@ -63,11 +66,19 @@ protected:
 	
 	void CheckTimeSync();
 	
+	UFUNCTION(Server, Reliable)
+	void ServerCheckMatchState();
+	
+	UFUNCTION(Client,Reliable)
+	void ClientJoinMidGame(const FName& StateOfMatch, const float Warmup, const float Match, const float StartingTime);
+	
 private:
 	
 	TObjectPtr<ABlasterHUD> BlasterHUD;
-	// TODO: I don't like putting the match time here. It should be in the game mode or game state.
-	float MatchTime = 125.f;
+	
+	float LevelStartingTime = 0.f;
+	float MatchTime = 0.f;
+	float WarmupTime = 0.f;
 	
 	uint32 CountdownInt = 0;
 	FTimerHandle CountdownTimer;
