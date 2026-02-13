@@ -43,14 +43,17 @@ void ABlasterHUD::BeginPlay()
 {
 	Super::BeginPlay();
 
-	AddCharacterOverlay();
+	// Create character overlay but do not add it to viewport.
+	if (const auto PlayerController = GetOwningPlayerController(); PlayerController && CharacterOverlayClass)
+	{
+		CharacterOverlay = CreateWidget<UCharacterOverlay>(PlayerController, CharacterOverlayClass);
+	}
 }
 
 void ABlasterHUD::AddCharacterOverlay()
 {
-	if (const auto PlayerController = GetOwningPlayerController(); PlayerController && CharacterOverlayClass)
+	if (CharacterOverlay)
 	{
-		CharacterOverlay = CreateWidget<UCharacterOverlay>(PlayerController, CharacterOverlayClass);
 		CharacterOverlay->AddToViewport();
 	}
 }

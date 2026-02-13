@@ -33,6 +33,20 @@ void ABlasterGameMode::HandleMatchIsWaitingToStart()
 	GetWorldTimerManager().SetTimer(WarmupStateTimer, TimerCallback, WarmupTime, false);
 }
 
+void ABlasterGameMode::OnMatchStateSet()
+{
+	Super::OnMatchStateSet();
+	
+	// Add overlay to all player controllers.
+	for (auto It = GetWorld()->GetPlayerControllerIterator(); It; ++It)
+	{
+		if (auto BlasterPlayerController = Cast<ABlasterPlayerController>(*It))
+		{
+			BlasterPlayerController->OnMatchStateSet(MatchState);
+		}
+	}
+}
+
 void ABlasterGameMode::PlayerEliminated(ABlasterCharacter* ElimmedCharacter, ABlasterPlayerController* VictimController,
                                         ABlasterPlayerController* AttackerController) const
 {

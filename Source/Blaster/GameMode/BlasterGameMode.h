@@ -28,7 +28,7 @@ public:
 
 protected:
 	virtual void HandleMatchIsWaitingToStart() override;
-	
+	virtual void OnMatchStateSet() override;
 private:
 	FTimerHandle WarmupStateTimer;
 };

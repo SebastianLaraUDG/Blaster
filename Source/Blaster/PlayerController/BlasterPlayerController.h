@@ -18,6 +18,7 @@ class BLASTER_API ABlasterPlayerController : public APlayerController
 
 public:
 	virtual void OnPossess(APawn* InPawn) override;
+	virtual void GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const override;
 	
 	/**
 	 * HUD
@@ -29,6 +30,8 @@ public:
 	void SetHUDWeaponCarriedAmmo(const int32& CarriedAmmo);
 	void SetHUDEquippedWeaponName(EWeaponType WeaponType);
 	void SetHUDMatchCountdown(const float& CountdownTime);
+	
+	void OnMatchStateSet(const FName& State);
 
 protected:
 	virtual void BeginPlay() override;
@@ -67,6 +70,16 @@ private:
 	float MatchTime = 125.f;
 	
 	uint32 CountdownInt = 0;
-	
 	FTimerHandle CountdownTimer;
+	
+	/** Match state. */
+	
+	UPROPERTY(ReplicatedUsing = OnRep_MatchState)
+	FName MatchState;
+	
+	UFUNCTION()
+	void OnRep_MatchState();
+	
+	// Add character overlay to player HUD when match starts.
+	void AddOverlayWhenMatchStarts();
 };

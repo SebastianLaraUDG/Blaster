@@ -8,6 +8,8 @@
 #include "Blaster/HUD/CharacterOverlay.h"
 #include "Components/ProgressBar.h"
 #include "Components/TextBlock.h"
+#include "GameFramework/GameMode.h"
+#include "Net/UnrealNetwork.h"
 
 /** 
  * TODO: This script uses the same code many times with minor changes, so
@@ -157,11 +159,9 @@ void ABlasterPlayerController::SetHUDEquippedWeaponName(EWeaponType WeaponType)
 }
 
 void ABlasterPlayerController::SetHUDMatchCountdown(const float& CountdownTime)
-{
-	if (!BlasterHUD)
-	{
-		BlasterHUD = Cast<ABlasterHUD>(GetHUD());
-	}
+{	
+	BlasterHUD = BlasterHUD ? BlasterHUD.Get() : Cast<ABlasterHUD>(GetHUD());
+	
 	const bool bHUDValid = BlasterHUD &&
 		BlasterHUD->CharacterOverlay &&
 		BlasterHUD->CharacterOverlay->MatchCountDownText;
@@ -177,7 +177,7 @@ void ABlasterPlayerController::SetHUDMatchCountdown(const float& CountdownTime)
 
 void ABlasterPlayerController::SetHUDTime()
 {
-	//CheckTimeSync();
+	// CheckTimeSync();
 	const uint32 SecondsLeft = FMath::CeilToInt(MatchTime - GetServerTime());
 	if (CountdownInt != SecondsLeft)
 	{
@@ -234,11 +234,41 @@ void ABlasterPlayerController::OnPossess(APawn* InPawn)
 	}
 }
 
+void ABlasterPlayerController::GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+	DOREPLIFETIME(ThisClass, MatchState)
+}
+
 void ABlasterPlayerController::ReceivedPlayer()
 {
 	Super::ReceivedPlayer();
 	if (IsLocalController())
 	{
 		ServerRequestServerTime(GetWorld()->GetTimeSeconds());
+	}
+}
+
+void ABlasterPlayerController::OnMatchStateSet(const FName& State)
+{
+	MatchState = State;
+	
+	AddOverlayWhenMatchStarts();
+}
+
+void ABlasterPlayerController::OnRep_MatchState()
+{
+	AddOverlayWhenMatchStarts();
+}
+
+void ABlasterPlayerController::AddOverlayWhenMatchStarts()
+{
+	if (MatchState == MatchState::InProgress)
+	{
+		if (BlasterHUD = BlasterHUD ? BlasterHUD.Get() : Cast<ABlasterHUD>(BlasterHUD); BlasterHUD)
+		{
+			BlasterHUD->AddCharacterOverlay();
+		}
 	}
 }
