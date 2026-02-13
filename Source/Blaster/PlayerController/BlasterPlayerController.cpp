@@ -4,6 +4,7 @@
 #include "BlasterPlayerController.h"
 
 #include "Blaster/Character/BlasterCharacter.h"
+#include "Blaster/HUD/Announcement.h"
 #include "Blaster/HUD/BlasterHUD.h"
 #include "Blaster/HUD/CharacterOverlay.h"
 #include "Components/ProgressBar.h"
@@ -20,6 +21,12 @@ void ABlasterPlayerController::BeginPlay()
 	Super::BeginPlay();
 	
 	BlasterHUD = Cast<ABlasterHUD>(GetHUD());
+	
+	if (BlasterHUD)
+	{
+		BlasterHUD->AddAnnouncement();
+	}
+	
 	// Start timer to check server-client time sync.
 	// Update time HUD and check time sync. 
 	GetWorldTimerManager().SetTimer(CountdownTimer, this, &ThisClass::SetHUDTime, TimeSyncFrequency, true);
@@ -254,21 +261,27 @@ void ABlasterPlayerController::OnMatchStateSet(const FName& State)
 {
 	MatchState = State;
 	
-	AddOverlayWhenMatchStarts();
+	HandleMatchHasStarted();
 }
 
 void ABlasterPlayerController::OnRep_MatchState()
 {
-	AddOverlayWhenMatchStarts();
+	HandleMatchHasStarted();
 }
 
-void ABlasterPlayerController::AddOverlayWhenMatchStarts()
+/** When match starts add character overlay and hide announcement text. */
+void ABlasterPlayerController::HandleMatchHasStarted()
 {
-	if (MatchState == MatchState::InProgress)
+	if (MatchState != MatchState::InProgress) return;
+
+
+	if (BlasterHUD = BlasterHUD ? BlasterHUD.Get() : Cast<ABlasterHUD>(BlasterHUD); BlasterHUD)
 	{
-		if (BlasterHUD = BlasterHUD ? BlasterHUD.Get() : Cast<ABlasterHUD>(BlasterHUD); BlasterHUD)
+		BlasterHUD->AddCharacterOverlay();
+		// Hide announcement text. 
+		if (BlasterHUD->Announcement)
 		{
-			BlasterHUD->AddCharacterOverlay();
+			BlasterHUD->Announcement->SetVisibility(ESlateVisibility::Hidden);
 		}
 	}
 }

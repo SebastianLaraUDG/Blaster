@@ -2,6 +2,8 @@
 
 
 #include "BlasterHUD.h"
+
+#include "Announcement.h"
 #include "GameFramework/PlayerController.h"
 #include "CharacterOverlay.h"
 
@@ -36,6 +38,17 @@ void ABlasterHUD::DrawHUD()
 		{
 			DrawCrosshair(HUDPackage.CrosshairRight, ViewportCenter, FVector2D(SpreadScaled, 0.f), HUDPackage.CrosshairsColor);
 		}
+	}
+}
+
+// Create and add to viewport.
+void ABlasterHUD::AddAnnouncement()
+{
+	const auto PlayerController = GetOwningPlayerController();
+	if (PlayerController && AnnouncementClass)
+	{
+		Announcement = CreateWidget<UAnnouncement>(PlayerController, AnnouncementClass);
+		Announcement->AddToViewport();
 	}
 }
 

@@ -28,6 +28,7 @@ struct FHUDPackage
 };
 
 class UCharacterOverlay;
+class UAnnouncement;
 
 /**
  * 
@@ -46,6 +47,14 @@ public:
 	
 	UPROPERTY()
 	TObjectPtr<UCharacterOverlay> CharacterOverlay;
+	
+	UPROPERTY(EditAnywhere,Category="Announcement")
+	TSubclassOf<UUserWidget> AnnouncementClass;
+	
+	UPROPERTY()
+	TObjectPtr<UAnnouncement> Announcement;
+	
+	void AddAnnouncement();
 	
 protected:
 	virtual void BeginPlay() override;

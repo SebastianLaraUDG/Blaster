@@ -81,5 +81,5 @@ private:
 	void OnRep_MatchState();
 	
 	// Add character overlay to player HUD when match starts.
-	void AddOverlayWhenMatchStarts();
+	void HandleMatchHasStarted();
 };
