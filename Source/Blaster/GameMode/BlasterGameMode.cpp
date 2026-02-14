@@ -8,6 +8,11 @@
 #include "Kismet/GameplayStatics.h"
 #include "Blaster/PlayerState/BlasterPlayerState.h"
 
+namespace MatchState
+{
+	const FName Cooldown = FName("Cooldown");
+}
+
 ABlasterGameMode::ABlasterGameMode()
 {
 	bDelayedStart = true;
@@ -21,8 +26,11 @@ void ABlasterGameMode::BeginPlay()
 
 void ABlasterGameMode::HandleMatchIsWaitingToStart()
 {
-	Super::HandleMatchIsWaitingToStart();
+	/** Setup and start a timer when level starts (no gameplay).*/
 	
+	
+	Super::HandleMatchIsWaitingToStart();
+
 	/** Lambda */
 	FTimerDelegate TimerCallback = FTimerDelegate::CreateLambda([this]()
 	{
@@ -34,9 +42,30 @@ void ABlasterGameMode::HandleMatchIsWaitingToStart()
 			GetWorldTimerManager().ClearTimer(WarmupStateTimer);
 		}
 	});
-	
+
 	// Run a timer to start match.
 	GetWorldTimerManager().SetTimer(WarmupStateTimer, TimerCallback, WarmupTime, false);
+}
+
+void ABlasterGameMode::HandleMatchHasStarted()
+{
+	/** Setup and start a timer when match begins to transition to State Cooldown.*/
+	
+	
+	Super::HandleMatchHasStarted();
+
+	FTimerHandle TimerHandle;
+
+	/** Lambda */
+	FTimerDelegate TimerCallback = FTimerDelegate::CreateLambda([this]()
+	{
+		// Clear all the timers of this object to avoid issues.
+		GetWorldTimerManager().ClearAllTimersForObject(this);
+		// Set state to Cooldown to display winner.
+		SetMatchState(MatchState::Cooldown);
+	});
+	
+	GetWorldTimerManager().SetTimer(TimerHandle, TimerCallback, MatchTime, false);
 }
 
 void ABlasterGameMode::OnMatchStateSet()
