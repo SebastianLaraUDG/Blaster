@@ -93,4 +93,6 @@ private:
 	
 	// Add character overlay to player HUD when match starts.
 	void HandleMatchHasStarted();
+	// Hide character overlay and show announcement text.
+	void HandleCooldown();
 };

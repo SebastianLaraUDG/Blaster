@@ -286,43 +286,6 @@ void ABlasterPlayerController::GetLifetimeReplicatedProps(TArray<class FLifetime
 	DOREPLIFETIME(ThisClass, MatchState)
 }
 
-void ABlasterPlayerController::ReceivedPlayer()
-{
-	Super::ReceivedPlayer();
-	if (IsLocalController())
-	{
-		ServerRequestServerTime(GetWorld()->GetTimeSeconds());
-	}
-}
-
-void ABlasterPlayerController::OnMatchStateSet(const FName& State)
-{
-	MatchState = State;
-
-	HandleMatchHasStarted();
-}
-
-void ABlasterPlayerController::OnRep_MatchState()
-{
-	HandleMatchHasStarted();
-}
-
-/** When match starts add character overlay and hide announcement text.*/
-void ABlasterPlayerController::HandleMatchHasStarted()
-{
-	if (MatchState != MatchState::InProgress) return;
-	
-	if (BlasterHUD = BlasterHUD ? BlasterHUD.Get() : Cast<ABlasterHUD>(BlasterHUD); BlasterHUD)
-	{
-		BlasterHUD->AddCharacterOverlay();
-		// Hide announcement text. 
-		if (BlasterHUD->Announcement)
-		{
-			BlasterHUD->Announcement->SetVisibility(ESlateVisibility::Hidden);
-		}
-	}
-}
-
 void ABlasterPlayerController::ServerCheckMatchState_Implementation()
 {
 	// Get all time values from the server and get ready for announcement and match widgets.
@@ -337,7 +300,7 @@ void ABlasterPlayerController::ServerCheckMatchState_Implementation()
 }
 
 void ABlasterPlayerController::ClientJoinMidGame_Implementation(const FName& StateOfMatch, const float Warmup,
-                                                                const float Match, const float StartingTime)
+																const float Match, const float StartingTime)
 {
 	WarmupTime = Warmup;
 	MatchTime = Match;
@@ -347,5 +310,71 @@ void ABlasterPlayerController::ClientJoinMidGame_Implementation(const FName& Sta
 	if (BlasterHUD && MatchState == MatchState::WaitingToStart)
 	{
 		BlasterHUD->AddAnnouncement();
+	}
+}
+
+void ABlasterPlayerController::ReceivedPlayer()
+{
+	Super::ReceivedPlayer();
+	if (IsLocalController())
+	{
+		ServerRequestServerTime(GetWorld()->GetTimeSeconds());
+	}
+}
+
+void ABlasterPlayerController::OnMatchStateSet(const FName& State)
+{
+	MatchState = State;
+
+	// Just transitioned to gameplay.
+	if (MatchState == MatchState::InProgress)
+	{
+		HandleMatchHasStarted();
+	}
+	// Match ended.
+	else if (MatchState == MatchState::Cooldown)
+	{
+		HandleCooldown();
+	}
+}
+
+void ABlasterPlayerController::OnRep_MatchState()
+{
+	// Just transitioned to gameplay.
+	if (MatchState == MatchState::InProgress)
+	{
+		HandleMatchHasStarted();
+	}
+	// Match ended.
+	else if (MatchState == MatchState::Cooldown)
+	{
+		HandleCooldown();
+	}
+}
+
+/** When match starts add character overlay and hide announcement text.*/
+void ABlasterPlayerController::HandleMatchHasStarted()
+{
+	if (BlasterHUD = BlasterHUD ? BlasterHUD.Get() : Cast<ABlasterHUD>(BlasterHUD); BlasterHUD)
+	{
+		BlasterHUD->AddCharacterOverlay();
+		// Hide announcement text. 
+		if (BlasterHUD->Announcement)
+		{
+			BlasterHUD->Announcement->SetVisibility(ESlateVisibility::Hidden);
+		}
+	}
+}
+
+void ABlasterPlayerController::HandleCooldown()
+{
+	if (BlasterHUD = BlasterHUD ? BlasterHUD.Get() : Cast<ABlasterHUD>(BlasterHUD); BlasterHUD)
+	{
+		BlasterHUD->CharacterOverlay->RemoveFromParent(); // Remove overlay responsible for health, ammo, etc.
+		// Hide announcement text. 
+		if (BlasterHUD->Announcement)
+		{
+			BlasterHUD->Announcement->SetVisibility(ESlateVisibility::Visible);
+		}
 	}
 }
