@@ -70,15 +70,16 @@ protected:
 	void ServerCheckMatchState();
 	
 	UFUNCTION(Client,Reliable)
-	void ClientJoinMidGame(const FName& StateOfMatch, const float Warmup, const float Match, const float StartingTime);
+	void ClientJoinMidGame(const FName& StateOfMatch, const float Warmup, const float Match, const float Cooldown, const float StartingTime);
 	
 private:
 	
 	TObjectPtr<ABlasterHUD> BlasterHUD;
 	
-	float LevelStartingTime = 0.f;
+	float LevelStartingTime = 0.f; // TODO: remove
 	float MatchTime = 0.f;
 	float WarmupTime = 0.f;
+	float CooldownTime = 0.f;
 	
 	uint32 CountdownInt = 0;
 	FTimerHandle CountdownTimer;
