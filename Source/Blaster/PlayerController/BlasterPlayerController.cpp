@@ -289,7 +289,7 @@ void ABlasterPlayerController::GetLifetimeReplicatedProps(TArray<class FLifetime
 void ABlasterPlayerController::ServerCheckMatchState_Implementation()
 {
 	// Get all time values from the server and get ready for announcement and match widgets.
-	if (auto BlasterGameMode = Cast<ABlasterGameMode>(UGameplayStatics::GetGameMode(this)))
+	if (const auto BlasterGameMode = Cast<ABlasterGameMode>(UGameplayStatics::GetGameMode(this)))
 	{
 		WarmupTime = BlasterGameMode->WarmupTime;
 		MatchTime = BlasterGameMode->MatchTime;
