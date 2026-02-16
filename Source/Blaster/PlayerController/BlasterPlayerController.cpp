@@ -234,14 +234,14 @@ void ABlasterPlayerController::SetHUDTime()
 
 // ~Begin Time Sync interface.
 
-void ABlasterPlayerController::ServerRequestServerTime_Implementation(const float& TimeOfClientRequest)
+void ABlasterPlayerController::ServerRequestServerTime_Implementation(const float TimeOfClientRequest)
 {
 	const float ServerTimeOfReceipt = GetWorld()->GetTimeSeconds();
 	ClientReportServerTime(TimeOfClientRequest, ServerTimeOfReceipt);
 }
 
-void ABlasterPlayerController::ClientReportServerTime_Implementation(const float& TimeOfClientRequest,
-                                                                     const float& TimeServerReceivedClientRequest)
+void ABlasterPlayerController::ClientReportServerTime_Implementation(const float TimeOfClientRequest,
+                                                                     const float TimeServerReceivedClientRequest)
 {
 	// The time it took for the client request to get to the server.
 	const float RoundTripTime = GetWorld()->GetTimeSeconds() - TimeOfClientRequest;

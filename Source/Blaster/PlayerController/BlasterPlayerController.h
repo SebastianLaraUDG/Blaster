@@ -50,11 +50,11 @@ protected:
 	
 	// Requests the current server time, passing in the client's time when the request was sent.
 	UFUNCTION(Server, Reliable)
-	void ServerRequestServerTime(const float& TimeOfClientRequest);
+	void ServerRequestServerTime(const float TimeOfClientRequest);
 	
 	// Reports the current server time to the client in response to ServerRequestServerTime
 	UFUNCTION(Client, Reliable)
-	void ClientReportServerTime(const float& TimeOfClientRequest, const float& TimeServerReceivedClientRequest);
+	void ClientReportServerTime(const float TimeOfClientRequest, const float TimeServerReceivedClientRequest);
 	
 	float ClientServerDelta = 0.f; // Difference between client and server time.
 	
