@@ -137,12 +137,6 @@ void ABlasterPlayerController::SetHUDEquippedWeaponName(EWeaponType WeaponType)
 	if (bHUDValid)
 	{
 		FText EquippedWeaponName;
-
-		/**
-		 * With a packaged game, GetDisplayValueAsText() will not return the display name,
-		 * but the enum name as in, EWT_AssaultRifle, without the enum class name. 
-		*/
-#if WITH_EDITOR
 		switch (WeaponType)
 		{
 		case EWeaponType::EWT_AssaultRifle: EquippedWeaponName = FText::FromString(TEXT("Assault Rifle"));
@@ -151,20 +145,6 @@ void ABlasterPlayerController::SetHUDEquippedWeaponName(EWeaponType WeaponType)
 		case EWeaponType::EWT_MAX: EquippedWeaponName = FText::FromString(TEXT(""));
 			break;
 		}
-
-#else
-		// Empty text.
-		if (WeaponType == EWeaponType::EWT_MAX)
-		{
-			EquippedWeaponName = FText::FromString(TEXT(""));
-		}
-		else
-		{
-			EquippedWeaponName = StaticEnum<EWeaponType>()->GetDisplayNameTextByValue(static_cast<int64>(WeaponType));
-			/*Deprecated UEnum::GetDisplayValueAsText<EWeaponType>(WeaponType);*/
-		}
-
-#endif
 		BlasterHUD->CharacterOverlay->EquippedWeaponName->SetText(EquippedWeaponName);
 	}
 }
