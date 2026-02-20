@@ -36,6 +36,7 @@ public:
 	virtual void GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const override;
 	void EquipWeapon(AWeapon* WeaponToEquip);
 	void Reload();
+	void FireButtonPressed(bool bPressed);
 	
 	// Designed to be called from notifies. Set combat state to Unoccupied in server.
 	UFUNCTION(BlueprintCallable)
@@ -50,8 +51,6 @@ protected:
 
 	UFUNCTION()
 	void OnRep_EquippedWeapon();
-
-	void FireButtonPressed(bool bPressed);
 	
 	void Fire();
 

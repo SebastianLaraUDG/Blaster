@@ -71,7 +71,7 @@ void ABlasterGameMode::HandleMatchHasStarted()
 void ABlasterGameMode::OnMatchStateSet()
 {
 	Super::OnMatchStateSet();
-	
+
 	// Add overlay to all player controllers.
 	for (auto It = GetWorld()->GetPlayerControllerIterator(); It; ++It)
 	{
@@ -79,6 +79,23 @@ void ABlasterGameMode::OnMatchStateSet()
 		{
 			BlasterPlayerController->OnMatchStateSet(MatchState);
 		}
+	}
+	/** When changing to Cooldown state, start a timer to restart game. */
+	if (MatchState == MatchState::Cooldown)
+	{
+		
+		FTimerHandle TimerHandle;
+
+		 // Lambda 
+		FTimerDelegate TimerCallback = FTimerDelegate::CreateLambda([this]()
+		{
+			// Clear all the timers of this object to avoid issues.
+			GetWorldTimerManager().ClearAllTimersForObject(this);
+			UE_LOG(LogTemp,Error,TEXT("RESTARTING GAME in %f"), CooldownTime)
+			// Restart game.
+			RestartGame();
+		});
+		GetWorldTimerManager().SetTimer(TimerHandle, TimerCallback, CooldownTime, false);
 	}
 }
 

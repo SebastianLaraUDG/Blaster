@@ -57,6 +57,10 @@ public:
 	
 	virtual void Destroyed() override;
 	
+	// When true, movement, jumping, aiming, shooting, and equipping weapons is disabled.
+	UPROPERTY(Replicated)
+	bool bDisableGameplay = false;
+	
 protected:
 	virtual void BeginPlay() override;
 
@@ -134,6 +138,7 @@ private:
 	
 	ETurningInPlace TurningInPlace;
 	void TurnInPlace(float DeltaTime);
+	void RotateInPlace(float DeltaTime);
 
 	/**
 	 * Animation montages.
@@ -271,4 +276,6 @@ public:
 	FORCEINLINE bool ShouldRotateRootBone() const { return bRotateRootBone; }
 	FORCEINLINE UHealthComponent* GetHealthComponent() const { return HealthComponent; }
 	ECombatState GetCombatState() const;
+	FORCEINLINE UCombatComponent* GetCombatComponent() const { return CombatComponent; }
+	FORCEINLINE bool GetDisableGameplay() const { return bDisableGameplay; }
 };

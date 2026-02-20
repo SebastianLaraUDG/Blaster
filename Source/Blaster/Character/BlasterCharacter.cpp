@@ -67,10 +67,10 @@ ABlasterCharacter::ABlasterCharacter()
 	// Health component.
 	HealthComponent = CreateDefaultSubobject<UHealthComponent>(TEXT("HealthComponent"));
 	HealthComponent->SetIsReplicated(true);
-	
+
 	// Always spawn. This is because there was an issue when a character should spawn but did not appear maybe because overlapping with something.
 	SpawnCollisionHandlingMethod = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
-	
+
 	// Dissolve Timeline component.
 	DissolveTimeline = CreateDefaultSubobject<UTimelineComponent>(TEXT("DissolveTimeline Component"));
 }
@@ -78,28 +78,9 @@ ABlasterCharacter::ABlasterCharacter()
 void ABlasterCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-
-	/*
-	 * Aim offsets for both local players and simulated proxies.
-	 * 
-	 */
-
-	// Only autonomous and authority proxies controlled by a player will calculate aim offsets.
-	if (GetLocalRole() > ROLE_SimulatedProxy && IsLocallyControlled())
-	{
-		AimOffset(DeltaTime);
-	}
-	// Simulated proxies will update their Aim offsets every certain amount of time determined regardless of whether they moved or not.
-	else
-	{
-		TimeSinceLastMovementReplication += DeltaTime;
-		if (TimeSinceLastMovementReplication > TimeForMovementReplicationUpdate)
-		{
-			OnRep_ReplicatedMovement();
-		}
-		CalculateAO_Pitch();
-	}
 	
+	RotateInPlace(DeltaTime);
+	HideCharacterIfCameraClose();
 	// Always update score and defeat text on hud. DEBUG
 	if (auto BlasterPlayerState = GetPlayerState<ABlasterPlayerState>(); BlasterPlayerState && IsLocallyControlled())
 	{
@@ -109,8 +90,6 @@ void ABlasterCharacter::Tick(float DeltaTime)
 			BlasterPlayerState->AddToDefeats(0);
 		}
 	}
-	
-	HideCharacterIfCameraClose();
 }
 
 void ABlasterCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
@@ -163,6 +142,7 @@ void ABlasterCharacter::GetLifetimeReplicatedProps(TArray<class FLifetimePropert
 
 	// Replicate overlapping weapon.
 	DOREPLIFETIME_CONDITION(ABlasterCharacter, OverlappingWeapon, COND_OwnerOnly);
+	DOREPLIFETIME(ABlasterCharacter, bDisableGameplay)
 }
 
 void ABlasterCharacter::PostInitializeComponents()
@@ -196,10 +176,11 @@ void ABlasterCharacter::PlayReloadMontage() const
 	{
 		AnimInstance->Montage_Play(ReloadMontage);
 		FName SectionName;
-		
+
 		switch (CombatComponent->EquippedWeapon->GetWeaponType())
 		{
-		case EWeaponType::EWT_AssaultRifle:		SectionName = FName("Rifle");	break;
+		case EWeaponType::EWT_AssaultRifle: SectionName = FName("Rifle");
+			break;
 		}
 		AnimInstance->Montage_JumpToSection(SectionName);
 	}
@@ -213,7 +194,6 @@ void ABlasterCharacter::PlayElimMontage()
 		AnimInstance->Montage_Play(ElimMontage);
 	}
 }
-
 
 
 void ABlasterCharacter::PlayHitReactMontage() const
@@ -238,11 +218,17 @@ void ABlasterCharacter::OnRep_ReplicatedMovement()
 void ABlasterCharacter::Destroyed()
 {
 	Super::Destroyed();
-	
+
 	// Destroy bot niagara after this character dies.
 	if (ElimBotComponent)
 	{
 		ElimBotComponent->DestroyComponent();
+	}
+	// If the character is holding a weapon when it gets destroyed, also destroy the weapon to
+	// prevent the remaining weapon from floating in the air.
+	if (CombatComponent && CombatComponent->EquippedWeapon)
+	{
+		CombatComponent->EquippedWeapon->Destroy();
 	}
 }
 
@@ -262,6 +248,8 @@ void ABlasterCharacter::BeginPlay()
 
 void ABlasterCharacter::Move(const FInputActionValue& Value)
 {
+	if (bDisableGameplay) return;
+	
 	const FVector2D Val = Value.Get<FVector2D>();
 
 	if (Controller != nullptr && !Val.IsZero())
@@ -284,11 +272,14 @@ void ABlasterCharacter::Turn(const FInputActionValue& Value)
 
 void ABlasterCharacter::HandleCrouchRequest()
 {
+	if (bDisableGameplay) return;
 	IsCrouched() ? UnCrouch() : Crouch();
 }
 
 void ABlasterCharacter::EquipButtonPressed()
 {
+	if (bDisableGameplay) return;
+	
 	if (CombatComponent)
 	{
 		// Case: Called from the server.
@@ -306,6 +297,7 @@ void ABlasterCharacter::EquipButtonPressed()
 
 void ABlasterCharacter::AimStarted()
 {
+	if (bDisableGameplay) return;
 	if (CombatComponent)
 	{
 		CombatComponent->SetAiming(true);
@@ -314,6 +306,7 @@ void ABlasterCharacter::AimStarted()
 
 void ABlasterCharacter::AimStopped()
 {
+	if (bDisableGameplay) return;
 	if (CombatComponent)
 	{
 		CombatComponent->SetAiming(false);
@@ -322,6 +315,7 @@ void ABlasterCharacter::AimStopped()
 
 void ABlasterCharacter::FireWeaponPressed()
 {
+	if (bDisableGameplay) return;
 	if (CombatComponent)
 	{
 		CombatComponent->FireButtonPressed(true);
@@ -331,6 +325,7 @@ void ABlasterCharacter::FireWeaponPressed()
 
 void ABlasterCharacter::FireWeaponReleased()
 {
+	if (bDisableGameplay) return;
 	if (CombatComponent)
 	{
 		CombatComponent->FireButtonPressed(false);
@@ -340,6 +335,7 @@ void ABlasterCharacter::FireWeaponReleased()
 
 void ABlasterCharacter::ReloadButtonPressed()
 {
+	if (bDisableGameplay) return;
 	if (CombatComponent)
 	{
 		CombatComponent->Reload();
@@ -419,8 +415,6 @@ void ABlasterCharacter::SimProxiesTurn()
 	// Delta Yaw rotation between frames.
 	const float ProxyYaw = UKismetMathLibrary::NormalizedDeltaRotator(ProxyRotation, ProxyRotationLastFrame).Yaw;
 
-	// UE_LOG(LogTemp, Display, TEXT("Proxy Yaw: %f"), ProxyYaw);
-
 	// Delta rotation exceeds threshold.
 	if (FMath::Abs(ProxyYaw) > TurnThreshold)
 	{
@@ -446,6 +440,7 @@ void ABlasterCharacter::SimProxiesTurn()
 
 void ABlasterCharacter::Jump()
 {
+	if (bDisableGameplay) return;
 	if (bIsCrouched)
 	{
 		UnCrouch();
@@ -453,6 +448,38 @@ void ABlasterCharacter::Jump()
 	else
 	{
 		Super::Jump();
+	}
+}
+
+void ABlasterCharacter::RotateInPlace(float DeltaTime)
+{
+	if (bDisableGameplay)
+	{
+		// Disable rotation in place.
+		bUseControllerRotationYaw = false;
+		TurningInPlace = ETurningInPlace::ETIP_NotTurning;
+		return;
+	}
+	
+	/*
+	 * Aim offsets for both local players and simulated proxies.
+	 * 
+	 */
+
+	// Only autonomous and authority proxies controlled by a player will calculate aim offsets.
+	if (GetLocalRole() > ROLE_SimulatedProxy && IsLocallyControlled())
+	{
+		AimOffset(DeltaTime);
+	}
+	// Simulated proxies will update their Aim offsets every certain amount of time determined regardless of whether they moved or not.
+	else
+	{
+		TimeSinceLastMovementReplication += DeltaTime;
+		if (TimeSinceLastMovementReplication > TimeForMovementReplicationUpdate)
+		{
+			OnRep_ReplicatedMovement();
+		}
+		CalculateAO_Pitch();
 	}
 }
 
@@ -502,7 +529,7 @@ void ABlasterCharacter::OnHealthChanged(float NewHealth, float DeltaHealth, ACon
 {
 	UpdateHUD();
 	PlayHitReactMontage();
-	
+
 	const auto BlasterGameMode = GetWorld()->GetAuthGameMode<ABlasterGameMode>();
 
 	// Register death in game mode.
@@ -522,18 +549,18 @@ void ABlasterCharacter::OnHealthChanged(float NewHealth, float DeltaHealth, ACon
 }
 
 
-
 void ABlasterCharacter::UpdateHUD()
 {
 	// Only local players need to update and see HUD.
 	if (!IsLocallyControlled()) return;
-	
+
 	// Make sure controller is valid.
 	if (!BlasterPlayerController)
 	{
 		BlasterPlayerController = Cast<ABlasterPlayerController>(Controller);
 	}
-	if (!BlasterPlayerController) return; // Double check to avoid issues with server travel. TODO: improve both readability and process itself.
+	if (!BlasterPlayerController) return;
+	// Double check to avoid issues with server travel. TODO: improve both readability and process itself.
 	BlasterPlayerController->SetHUDHealth(HealthComponent->GetCurrentHealth(), HealthComponent->GetMaxHealth());
 }
 
@@ -562,7 +589,8 @@ void ABlasterCharacter::UpdateDissolveMaterial(float DissolveValue)
 {
 	if (DynamicDissolveMaterialInstance)
 	{
-		DynamicDissolveMaterialInstance->SetScalarParameterValue(TEXT("Dissolve"), DissolveValue); // This value is hard coded to the material of this project. Make sure name is correct.
+		DynamicDissolveMaterialInstance->SetScalarParameterValue(TEXT("Dissolve"), DissolveValue);
+		// This value is hard coded to the material of this project. Make sure name is correct.
 	}
 }
 
@@ -578,7 +606,6 @@ void ABlasterCharacter::StartDissolve()
 
 void ABlasterCharacter::MulticastElim_Implementation()
 {
-	
 	if (BlasterPlayerController)
 	{
 		// Reset ammo text to zero.
@@ -587,43 +614,42 @@ void ABlasterCharacter::MulticastElim_Implementation()
 		BlasterPlayerController->SetHUDEquippedWeaponName(EWeaponType::EWT_MAX);
 	}
 	PlayElimMontage();
-	
+
 	/* Start dissolve effect. */
-	
+
 	// Set the dynamic dissolve material for each mesh material.
 	if (DissolveMaterialInstance)
 	{
 		DynamicDissolveMaterialInstance = UMaterialInstanceDynamic::Create(DissolveMaterialInstance, this);
-		for (auto Index = 0; Index<GetMesh()->GetNumMaterials(); ++Index)
+		for (auto Index = 0; Index < GetMesh()->GetNumMaterials(); ++Index)
 		{
-			GetMesh()->SetMaterial(Index,DynamicDissolveMaterialInstance);
-			DynamicDissolveMaterialInstance->SetScalarParameterValue(TEXT("Dissolve"), 0.55f /*Completely dissolved material. */);	// These values are hard coded to the material of this project. Make sure names are correct.
+			GetMesh()->SetMaterial(Index, DynamicDissolveMaterialInstance);
+			DynamicDissolveMaterialInstance->
+				SetScalarParameterValue(TEXT("Dissolve"), 0.55f /*Completely dissolved material. */);
+			// These values are hard coded to the material of this project. Make sure names are correct.
 			DynamicDissolveMaterialInstance->SetScalarParameterValue(TEXT("Glow"), 200.f);
 		}
 	}
 	// and start the dissolving effect.
 	StartDissolve();
-	
+
 	// Disable character movement.
-	GetCharacterMovement()->DisableMovement();
-	GetCharacterMovement()->StopMovementImmediately();
-	if (BlasterPlayerController)
-	{
-		DisableInput(BlasterPlayerController);
-	}
+	bDisableGameplay = true;
 	// Disable collision.
 	GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	GetMesh()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-	
+
 	// Spawn elim bot.
 	if (ElimBotEffect)
 	{
-		const FVector ElimBotSpawnPoint(GetActorLocation().X, GetActorLocation().Y, GetActorLocation().Z + 200.f); // Spawn location is 2 meters above character.
-		ElimBotComponent = UNiagaraFunctionLibrary::SpawnSystemAtLocation(this, ElimBotEffect, ElimBotSpawnPoint, GetActorRotation());
+		const FVector ElimBotSpawnPoint(GetActorLocation().X, GetActorLocation().Y, GetActorLocation().Z + 200.f);
+		// Spawn location is 2 meters above character.
+		ElimBotComponent = UNiagaraFunctionLibrary::SpawnSystemAtLocation(
+			this, ElimBotEffect, ElimBotSpawnPoint, GetActorRotation());
 	}
 	if (ElimBotSound)
 	{
-		UGameplayStatics::SpawnSoundAtLocation(this, ElimBotSound,GetActorLocation());
+		UGameplayStatics::SpawnSoundAtLocation(this, ElimBotSound, GetActorLocation());
 	}
 }
 
