@@ -57,5 +57,10 @@
 			"Name": "N10XSourceCodeAccess",
 			"Enabled": false
 		}
+	],
+	"TargetPlatforms": [
+		"Linux",
+		"Windows",
+		"Mac"
 	]
 }
