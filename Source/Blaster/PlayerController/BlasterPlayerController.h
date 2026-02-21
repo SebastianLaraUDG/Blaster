@@ -72,6 +72,9 @@ protected:
 	UFUNCTION(Client,Reliable)
 	void ClientJoinMidGame(const FName& StateOfMatch, const float Warmup, const float Match, const float Cooldown, const float StartingTime);
 	
+	/* Different options to display: No winner, You are the winner, Sole winner, Top winners of the match*/
+	virtual void DisplayWinner() const;
+	
 private:
 	
 	TObjectPtr<ABlasterHUD> BlasterHUD;

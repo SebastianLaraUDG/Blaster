@@ -7,9 +7,11 @@
 #include "Blaster/BlasterComponents/CombatComponent.h"
 #include "Blaster/Character/BlasterCharacter.h"
 #include "Blaster/GameMode/BlasterGameMode.h"
+#include "Blaster/GameState/BlasterGameState.h"
 #include "Blaster/HUD/Announcement.h"
 #include "Blaster/HUD/BlasterHUD.h"
 #include "Blaster/HUD/CharacterOverlay.h"
+#include "Blaster/PlayerState/BlasterPlayerState.h"
 #include "Components/ProgressBar.h"
 #include "Components/TextBlock.h"
 #include "GameFramework/GameMode.h"
@@ -380,7 +382,8 @@ void ABlasterPlayerController::HandleCooldown()
 			BlasterHUD->Announcement->SetVisibility(ESlateVisibility::Visible); // Show announcement text.
 			const FString AnnouncementText("New match starts in: "); // New text telling match will restart in a few seconds.
 			BlasterHUD->Announcement->AnnouncementText->SetText(FText::FromString(AnnouncementText));
-			BlasterHUD->Announcement->InfoText->SetText(FText()); // No text needed in info.
+			
+			DisplayWinner();
 		}
 	}
 	// In cooldown state, disable gameplay movement and
@@ -390,5 +393,43 @@ void ABlasterPlayerController::HandleCooldown()
 	{
 		BlasterCharacter->bDisableGameplay = true;
 		BlasterCharacter->GetCombatComponent()->FireButtonPressed(false);
+	}
+}
+
+void ABlasterPlayerController::DisplayWinner() const
+{
+	const auto BlasterGameState = Cast<ABlasterGameState>(UGameplayStatics::GetGameState(this));
+	const auto BlasterPlayerState = GetPlayerState<ABlasterPlayerState>();
+	if (BlasterGameState && BlasterPlayerState)
+	{
+		const TArray<ABlasterPlayerState*> TopPlayers = BlasterGameState->TopScoringPlayers;
+		FString InfoTextString;
+		
+		// Case NO WINNER.
+		if (TopPlayers.Num() == 0)
+		{
+			InfoTextString = FString("There is no winner.");
+		}
+		// Case CURRENT PLAYER IS WINNER.
+		else if (TopPlayers.Num() == 1 && TopPlayers[0] == BlasterPlayerState)
+		{
+			InfoTextString = FString("You are the winner!");
+		}
+		// Case ONE WINNER, BUT IT IS NOT THIS PLAYER.
+		else if (TopPlayers.Num() == 1)
+		{
+			InfoTextString = FString::Printf(TEXT("Winner: \n %s"), *TopPlayers[0]->GetPlayerName());
+		}
+		// Case MORE THAN ONE WINNER.
+		else if (TopPlayers.Num() > 1)
+		{
+			InfoTextString = FString("Players tied for the win:\n");
+			for (const auto TiedPlayer : TopPlayers)
+			{
+				InfoTextString.Append(FString::Printf(TEXT("%s"), *TiedPlayer->GetPlayerName()));
+			}
+		}
+				
+		BlasterHUD->Announcement->InfoText->SetText(FText::FromString(InfoTextString));
 	}
 }

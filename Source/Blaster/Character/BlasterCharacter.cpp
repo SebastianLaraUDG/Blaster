@@ -11,7 +11,6 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Net/UnrealNetwork.h"
 #include "Blaster/Weapon/Weapon.h"
-#include "Blaster/BlasterComponents/CombatComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "Kismet/KismetMathLibrary.h"
 #include "BlasterAnimInstance.h"
@@ -224,9 +223,13 @@ void ABlasterCharacter::Destroyed()
 	{
 		ElimBotComponent->DestroyComponent();
 	}
+	
+	const auto BlasterGameMode = Cast<ABlasterGameMode>(UGameplayStatics::GetGameMode(this));
+	const bool bMatchNotInProgress = BlasterGameMode && BlasterGameMode->GetMatchState() != MatchState::InProgress;
+	
 	// If the character is holding a weapon when it gets destroyed, also destroy the weapon to
 	// prevent the remaining weapon from floating in the air.
-	if (CombatComponent && CombatComponent->EquippedWeapon)
+	if (CombatComponent && CombatComponent->EquippedWeapon && bMatchNotInProgress)
 	{
 		CombatComponent->EquippedWeapon->Destroy();
 	}
@@ -633,8 +636,14 @@ void ABlasterCharacter::MulticastElim_Implementation()
 	// and start the dissolving effect.
 	StartDissolve();
 
-	// Disable character movement.
+	// Disable character movement
+	// and stop firing.
 	bDisableGameplay = true;
+	if (CombatComponent)
+	{
+		CombatComponent->FireButtonPressed(false);
+	}
+	
 	// Disable collision.
 	GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	GetMesh()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
