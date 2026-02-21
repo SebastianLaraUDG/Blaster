@@ -635,6 +635,9 @@ void ABlasterCharacter::MulticastElim_Implementation()
 	}
 	// and start the dissolving effect.
 	StartDissolve();
+	// Disable character movement.
+	GetCharacterMovement()->DisableMovement();
+	GetCharacterMovement()->StopMovementImmediately();
 
 	// Disable character movement
 	// and stop firing.
