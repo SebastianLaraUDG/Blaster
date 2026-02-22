@@ -168,6 +168,14 @@ void ABlasterPlayerController::SetHUDMatchCountdown(const float CountdownTime)
 		const int32 Minutes = FMath::FloorToInt(CountdownTime / 60.f);
 		const int32 Seconds = CountdownTime - Minutes * 60.f;
 
+		/* Play countdown animation in text if specified and the time remaining is 30 seconds or less. */
+		if (Seconds <= 30 && Minutes == 0 && BlasterHUD->CharacterOverlay->CountdownAnimation)
+		{
+			BlasterHUD->CharacterOverlay->MatchCountDownText->SetColorAndOpacity(FLinearColor(1.0f, 0.0f, 0.0f, 1.0f));
+			BlasterHUD->CharacterOverlay->PlayAnimation(BlasterHUD->CharacterOverlay->CountdownAnimation,
+				0.f, 30); // 30 loops is hardcoded for 30 seconds, it could be changed to a UPROPERTY variable if you want to.
+		}
+		
 		const FString CountdownText = FString::Printf(TEXT("%02d:%02d"), Minutes, Seconds);
 		BlasterHUD->CharacterOverlay->MatchCountDownText->SetText(FText::FromString(CountdownText));
 	}
@@ -426,7 +434,7 @@ void ABlasterPlayerController::DisplayWinner() const
 			InfoTextString = FString("Players tied for the win:\n");
 			for (const auto TiedPlayer : TopPlayers)
 			{
-				InfoTextString.Append(FString::Printf(TEXT("%s"), *TiedPlayer->GetPlayerName()));
+				InfoTextString.Append(FString::Printf(TEXT("%s\n"), *TiedPlayer->GetPlayerName()));
 			}
 		}
 				

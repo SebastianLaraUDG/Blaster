@@ -8,6 +8,7 @@
 
 class UProgressBar;
 class UTextBlock;
+class UWidgetAnimation;
 
 /**
  * For displaying players information such as health, ammo, and defeats.
@@ -40,4 +41,8 @@ public:
 	
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UTextBlock> MatchCountDownText;
+	
+	// E.g. blinking animation.
+	UPROPERTY(meta = (BindWidgetAnim), Transient)
+	TObjectPtr<UWidgetAnimation> CountdownAnimation;
 };
