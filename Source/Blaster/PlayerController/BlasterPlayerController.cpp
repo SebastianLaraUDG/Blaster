@@ -173,9 +173,10 @@ void ABlasterPlayerController::SetHUDMatchCountdown(const float CountdownTime)
 		{
 			BlasterHUD->CharacterOverlay->MatchCountDownText->SetColorAndOpacity(FLinearColor(1.0f, 0.0f, 0.0f, 1.0f));
 			BlasterHUD->CharacterOverlay->PlayAnimation(BlasterHUD->CharacterOverlay->CountdownAnimation,
-				0.f, 30); // 30 loops is hardcoded for 30 seconds, it could be changed to a UPROPERTY variable if you want to.
+			                                            0.f, 30);
+			// 30 loops is hardcoded for 30 seconds, it could be changed to a UPROPERTY variable if you want to.
 		}
-		
+
 		const FString CountdownText = FString::Printf(TEXT("%02d:%02d"), Minutes, Seconds);
 		BlasterHUD->CharacterOverlay->MatchCountDownText->SetText(FText::FromString(CountdownText));
 	}
@@ -203,7 +204,7 @@ void ABlasterPlayerController::SetHUDAnnouncementCountdown(const float Countdown
 void ABlasterPlayerController::SetHUDTime()
 {
 	float TimeLeft = 0.f;
-	
+
 	// 1. Calculate the remaining real time based on current match state.
 	if (MatchState == MatchState::WaitingToStart)
 	{
@@ -218,7 +219,7 @@ void ABlasterPlayerController::SetHUDTime()
 		// The total amount of time until the end of the Cooldown.
 		TimeLeft = CooldownTime + WarmupTime + MatchTime - GetServerTime();
 	}
-	
+
 	const uint32 SecondsLeft = FMath::CeilToInt(TimeLeft);
 
 	// 2. Only update the HUD if the seconds changed to save a bit of performance.
@@ -308,7 +309,8 @@ void ABlasterPlayerController::ServerCheckMatchState_Implementation()
 }
 
 void ABlasterPlayerController::ClientJoinMidGame_Implementation(const FName& StateOfMatch, const float Warmup,
-																const float Match, const float Cooldown, const float StartingTime)
+                                                                const float Match, const float Cooldown,
+                                                                const float StartingTime)
 {
 	WarmupTime = Warmup;
 	MatchTime = Match;
@@ -380,17 +382,18 @@ void ABlasterPlayerController::HandleCooldown()
 	if (BlasterHUD = BlasterHUD ? BlasterHUD.Get() : Cast<ABlasterHUD>(BlasterHUD); BlasterHUD)
 	{
 		BlasterHUD->CharacterOverlay->RemoveFromParent(); // Remove overlay responsible for health, ammo, etc.
-		
+
 		const bool bHUDValid = BlasterHUD->Announcement &&
 			BlasterHUD->Announcement->AnnouncementText &&
 			BlasterHUD->Announcement->InfoText;
-		
+
 		if (bHUDValid)
 		{
 			BlasterHUD->Announcement->SetVisibility(ESlateVisibility::Visible); // Show announcement text.
-			const FString AnnouncementText("New match starts in: "); // New text telling match will restart in a few seconds.
+			const FString AnnouncementText("New match starts in: ");
+			// New text telling match will restart in a few seconds.
 			BlasterHUD->Announcement->AnnouncementText->SetText(FText::FromString(AnnouncementText));
-			
+
 			DisplayWinner();
 		}
 	}
@@ -412,7 +415,7 @@ void ABlasterPlayerController::DisplayWinner() const
 	{
 		const TArray<ABlasterPlayerState*> TopPlayers = BlasterGameState->TopScoringPlayers;
 		FString InfoTextString;
-		
+
 		// Case NO WINNER.
 		if (TopPlayers.Num() == 0)
 		{
@@ -437,7 +440,7 @@ void ABlasterPlayerController::DisplayWinner() const
 				InfoTextString.Append(FString::Printf(TEXT("%s\n"), *TiedPlayer->GetPlayerName()));
 			}
 		}
-				
+
 		BlasterHUD->Announcement->InfoText->SetText(FText::FromString(InfoTextString));
 	}
 }
