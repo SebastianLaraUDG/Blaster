@@ -23,6 +23,7 @@ private:
 	UPROPERTY(EditDefaultsOnly)
 	TSubclassOf<AProjectile> ProjectileClass;
 	
+	// Here is where the projectile will be spawned.
 	UPROPERTY(EditAnywhere,BlueprintReadOnly, meta = (AllowPrivateAccess = true))
 	FName MuzzleSocketName = FName("MuzzleFlash");
 };
