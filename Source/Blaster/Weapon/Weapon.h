@@ -49,7 +49,7 @@ public:
 
 	void SetWeaponState(EWeaponState NewState);
 	
-	void AddAmmo(const int32& AmmoToAdd);
+	void AddAmmo(const int32 AmmoToAdd);
 	
 	/*
 	* Textures for the weapon crosshairs.
@@ -131,6 +131,7 @@ private:
 	TSubclassOf<ACasing> CasingClass;
 	
 	/* Ammo. */
+	
 	
 	// Current ammo amount.
 	UPROPERTY(ReplicatedUsing = OnRep_Ammo, EditAnywhere, Category = Ammo)
