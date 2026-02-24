@@ -5,6 +5,7 @@
 
 #include "NiagaraComponent.h"
 #include "NiagaraFunctionLibrary.h"
+#include "NiagaraSystemInstanceController.h"
 #include "Components/AudioComponent.h"
 #include "Components/BoxComponent.h"
 #include "Kismet/GameplayStatics.h"
@@ -88,9 +89,9 @@ void AProjectileRocket::OnHit(UPrimitiveComponent* HitComp, AActor* HitOther, UP
 		CollisionBox->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	}
 	// Deactivate trail.
-	if (TrailSystemComponent)
+	if (TrailSystemComponent && TrailSystemComponent->GetSystemInstanceController())
 	{
-		TrailSystemComponent->DeactivateImmediate();
+		TrailSystemComponent->GetSystemInstanceController()->Deactivate();
 	}
 	// Stop movement looping sound.
 	if (ProjectileLoopComponent && ProjectileLoopComponent->IsPlaying())
