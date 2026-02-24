@@ -126,7 +126,7 @@ void ABlasterPlayerController::SetHUDWeaponCarriedAmmo(const int32 CarriedAmmo)
 	}
 }
 
-void ABlasterPlayerController::SetHUDEquippedWeaponName(EWeaponType WeaponType)
+void ABlasterPlayerController::SetHUDEquippedWeaponName(const EWeaponType WeaponType)
 {
 	if (!BlasterHUD)
 	{
@@ -142,6 +142,8 @@ void ABlasterPlayerController::SetHUDEquippedWeaponName(EWeaponType WeaponType)
 		switch (WeaponType)
 		{
 		case EWeaponType::EWT_AssaultRifle: EquippedWeaponName = FText::FromString(TEXT("Assault Rifle"));
+			break;
+		case EWeaponType::EWT_RocketLauncher: EquippedWeaponName = FText::FromString(TEXT("Rocket Launcher"));
 			break;
 		// Empty text.
 		case EWeaponType::EWT_MAX: EquippedWeaponName = FText::FromString(TEXT(""));
