@@ -53,10 +53,26 @@ protected:
 	
 	UPROPERTY(EditDefaultsOnly, meta = (ClampMin = 0.000001))
 	float Damage = 1.f; // TODO: Wouldn't it be better to implement this in an interface?
-
-private:
+	
+	// The particle to spawn on a hit.
+	UPROPERTY(VisibleAnywhere, Category=ImpactEffects)
+	TObjectPtr<UNiagaraSystem> ImpactParticle;
+	
+	UPROPERTY(VisibleAnywhere, Category=ImpactEffects)
+	TObjectPtr<USoundCue> ImpactSound;
+	
 	UPROPERTY(EditAnywhere)
 	TObjectPtr<UBoxComponent> CollisionBox;
+	
+	// Default particle to spawn if hit surface does not have a physics material set.
+	UPROPERTY(EditDefaultsOnly, Category=ImpactEffects)
+	TObjectPtr<UNiagaraSystem> DefaultImpactParticle;
+	
+	// Default sound to play if hit surface does not have a physics material set.
+	UPROPERTY(EditAnywhere, Category=ImpactEffects)
+	TObjectPtr<USoundCue> DefaultImpactSound;
+
+private:
 
 	UPROPERTY(EditAnywhere)
 	TObjectPtr<UProjectileMovementComponent> ProjectileMovement;
@@ -68,23 +84,7 @@ private:
 	UPROPERTY(EditAnywhere, Category=VFX)
 	TObjectPtr<UNiagaraComponent> TracerNiagaraComponent;
 	
-	// The particle to spawn on a hit.
-	UPROPERTY(VisibleAnywhere, Category=ImpactEffects)
-	TObjectPtr<UNiagaraSystem> ImpactParticle;
-	
-	// Default particle to spawn if hit surface does not have a physics material set.
-	UPROPERTY(EditDefaultsOnly, Category=ImpactEffects)
-	TObjectPtr<UNiagaraSystem> DefaultImpactParticle;
-	
 	// Different impact effects depending on surface hit.
 	UPROPERTY(EditDefaultsOnly, Category=ImpactEffects)
 	TMap<TEnumAsByte<EPhysicalSurface>, FImpactEffect> ImpactEffects;
-	
-	UPROPERTY(VisibleAnywhere, Category=ImpactEffects)
-	TObjectPtr<USoundCue> ImpactSound;
-
-	// Default sound to play if hit surface does not have a physics material set.
-	UPROPERTY(EditAnywhere, Category=ImpactEffects)
-	TObjectPtr<USoundCue> DefaultImpactSound;
-public:
 };
