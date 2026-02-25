@@ -106,6 +106,13 @@ protected:
 	UFUNCTION()
 	virtual void OnSphereEndOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
 	                                UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
+	
+	/*
+	 * Here is where the projectile will be spawned in case of ProjectileWeapon or where
+	 * the line trace will start in a HitScanWeapon.
+	*/
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = true))
+	FName MuzzleSocketName = FName("MuzzleFlash");
 
 private:
 	/* Mesh */

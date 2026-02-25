@@ -182,6 +182,9 @@ void ABlasterCharacter::PlayReloadMontage() const
 			break;
 		case EWeaponType::EWT_RocketLauncher: SectionName = FName("Rifle"); // Specify section name if you implement new sections and animations.
 			break;
+		case EWeaponType::EWT_Pistol: FName("Rifle"); // Specify section name if you implement new sections and animations.
+			break;
+		case  EWeaponType::EWT_MAX: break;
 		}
 		AnimInstance->Montage_JumpToSection(SectionName);
 	}
