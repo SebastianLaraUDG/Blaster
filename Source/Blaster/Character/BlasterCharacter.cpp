@@ -77,7 +77,7 @@ ABlasterCharacter::ABlasterCharacter()
 void ABlasterCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-	
+
 	RotateInPlace(DeltaTime);
 	HideCharacterIfCameraClose();
 	// Always update score and defeat text on hud. DEBUG
@@ -180,13 +180,18 @@ void ABlasterCharacter::PlayReloadMontage() const
 		{
 		case EWeaponType::EWT_AssaultRifle: SectionName = FName("Rifle");
 			break;
-		case EWeaponType::EWT_RocketLauncher: SectionName = FName("Rifle"); // Specify section name if you implement new sections and animations.
+		case EWeaponType::EWT_RocketLauncher: SectionName = FName("Rifle");
+			// Specify section name if you implement new sections and animations.
 			break;
-		case EWeaponType::EWT_Pistol: SectionName = FName("Rifle"); // Specify section name if you implement new sections and animations.
+		case EWeaponType::EWT_Pistol: SectionName = FName("Rifle");
+			// Specify section name if you implement new sections and animations.
 			break;
-		case EWeaponType::EWT_SubmachineGun: SectionName = FName("Rifle"); // Specify section name if you implement new sections and animations.
+		case EWeaponType::EWT_SubmachineGun: SectionName = FName("Rifle");
+			// Specify section name if you implement new sections and animations.
 			break;
-		case  EWeaponType::EWT_MAX: break;
+		case EWeaponType::EWT_Shotgun: SectionName = FName("Rifle");
+			break;
+		case EWeaponType::EWT_MAX: break;
 		}
 		AnimInstance->Montage_JumpToSection(SectionName);
 	}
@@ -230,10 +235,10 @@ void ABlasterCharacter::Destroyed()
 	{
 		ElimBotComponent->DestroyComponent();
 	}
-	
+
 	const auto BlasterGameMode = Cast<ABlasterGameMode>(UGameplayStatics::GetGameMode(this));
 	const bool bMatchNotInProgress = BlasterGameMode && BlasterGameMode->GetMatchState() != MatchState::InProgress;
-	
+
 	// If the character is holding a weapon when it gets destroyed, also destroy the weapon to
 	// prevent the remaining weapon from floating in the air.
 	if (CombatComponent && CombatComponent->EquippedWeapon && bMatchNotInProgress)
@@ -259,7 +264,7 @@ void ABlasterCharacter::BeginPlay()
 void ABlasterCharacter::Move(const FInputActionValue& Value)
 {
 	if (bDisableGameplay) return;
-	
+
 	const FVector2D Val = Value.Get<FVector2D>();
 
 	if (Controller != nullptr && !Val.IsZero())
@@ -289,7 +294,7 @@ void ABlasterCharacter::HandleCrouchRequest()
 void ABlasterCharacter::EquipButtonPressed()
 {
 	if (bDisableGameplay) return;
-	
+
 	if (CombatComponent)
 	{
 		// Case: Called from the server.
@@ -470,7 +475,7 @@ void ABlasterCharacter::RotateInPlace(float DeltaTime)
 		TurningInPlace = ETurningInPlace::ETIP_NotTurning;
 		return;
 	}
-	
+
 	/*
 	 * Aim offsets for both local players and simulated proxies.
 	 * 
@@ -653,7 +658,7 @@ void ABlasterCharacter::MulticastElim_Implementation()
 	{
 		CombatComponent->FireButtonPressed(false);
 	}
-	
+
 	// Disable collision.
 	GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	GetMesh()->SetCollisionEnabled(ECollisionEnabled::NoCollision);

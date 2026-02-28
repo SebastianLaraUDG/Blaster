@@ -7,6 +7,7 @@
 #include "Engine/SkeletalMeshSocket.h"
 #include "Kismet/GameplayStatics.h"
 #include "NiagaraComponent.h"
+#include "Kismet/KismetMathLibrary.h"
 
 void AHitScanWeapon::Fire(const FVector& HitTarget)
 {
@@ -25,6 +26,19 @@ void AHitScanWeapon::Fire(const FVector& HitTarget)
 
 	const FTransform SocketTransform = MuzzleFlashSocket->GetSocketTransform(GetMesh());
 	const FVector Start = SocketTransform.GetLocation();
+	
+	if (GetWeaponType() != EWeaponType::EWT_Shotgun) // For all weapons that do not scatter.
+	{
+		//
+	}
+	else
+	{
+		for (uint32 Index = 0; Index < NumberOfPellets; Index++)
+		{
+			FVector End = TraceEndWithScatter(Start, HitTarget);
+		}
+	}
+	
 	const FVector End = Start + (HitTarget - Start).GetSafeNormal() * MaxTraceDistance;
 	FVector BeamEnd = End;
 
@@ -62,4 +76,25 @@ void AHitScanWeapon::Fire(const FVector& HitTarget)
 
 		BeamLegacy->SetVectorParameter(FName("Target"), BeamEnd);
 	}
+}
+
+FVector AHitScanWeapon::TraceEndWithScatter(const FVector& TraceStart, const FVector& HitTarget) const
+{
+	const FVector ToTargetNormalized = (HitTarget - TraceStart).GetSafeNormal();
+	const FVector SphereCenter = TraceStart + ToTargetNormalized * DistanceToSphere;
+	const FVector RandVec = UKismetMathLibrary::RandomUnitVector() * FMath::FRandRange(0.f, SphereRadius);
+	const FVector EndLoc = SphereCenter + RandVec;
+	const FVector ToEndLoc = EndLoc - TraceStart;
+	
+	DrawDebugSphere(GetWorld(), SphereCenter, SphereRadius, 12, FColor::Red, true);
+	
+	DrawDebugSphere(GetWorld(), EndLoc, 4.f, 12, FColor::Orange, true);
+	
+	DrawDebugLine(
+		GetWorld(),
+		TraceStart,
+		FVector(TraceStart + ToEndLoc * MaxTraceDistance / ToEndLoc.Size()),
+		FColor::Cyan,
+		true);
+	return FVector(TraceStart + ToEndLoc * MaxTraceDistance / ToEndLoc.Size());
 }

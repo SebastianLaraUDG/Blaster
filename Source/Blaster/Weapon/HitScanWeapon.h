@@ -20,6 +20,8 @@ class BLASTER_API AHitScanWeapon : public AWeapon
 
 public:
 	virtual void Fire(const FVector& HitTarget) override;
+protected:
+	FVector TraceEndWithScatter(const FVector& TraceStart, const FVector& HitTarget) const;	
 private:
 	
 	UPROPERTY(EditAnywhere, meta = (ClampMin = 0.000001f))
@@ -27,6 +29,25 @@ private:
 	
 	UPROPERTY(EditAnywhere, meta = (ClampMin = 0.000001f))
 	float MaxTraceDistance = 100.f; 
+	
+	/*
+	 * Trace end with scatter.
+	 */
+	
+	
+	UPROPERTY(EditAnywhere, meta = (ClampMin = 0.000001f), Category = "Weapon Scatter")
+	float DistanceToSphere = 800.f;
+	
+	UPROPERTY(editAnywhere, meta = (ClampMin = 0.000001f),Category = "Weapon Scatter")
+	float SphereRadius = 75.f;
+	
+	// Check this if you want bullets scatter like a shotgun.
+	UPROPERTY(EditAnywhere, Category = "WeaponScatter")
+	bool bUseScatter = false;
+	
+	UPROPERTY(EditAnywhere, meta = (ClampMin = 1), Category = "Weapon Scatter")
+	uint32 NumberOfPellets = 1;
+	
 	
 	/* In the future, to implement different impact particles and sounds I could use the same approach
 	* I used in the Projectile class.
