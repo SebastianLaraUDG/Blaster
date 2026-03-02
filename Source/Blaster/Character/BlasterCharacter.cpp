@@ -190,6 +190,10 @@ void ABlasterCharacter::PlayReloadMontage() const
 			// Specify section name if you implement new sections and animations.
 			break;
 		case EWeaponType::EWT_Shotgun: SectionName = FName("Rifle");
+			// Specify section name if you implement new sections and animations.
+			break;
+		case EWeaponType::EWT_SniperRifle: SectionName = FName("Rifle");
+			// Specify section name if you implement new sections and animations.
 			break;
 		case EWeaponType::EWT_MAX: break;
 		}

@@ -201,7 +201,10 @@ private:
 	int32 StartingSMGAmmo = 30;
 	
 	UPROPERTY(EditAnywhere, meta = (ClampMin = 0))
-	int32 StartingShotgunAmmo = 0;
+	int32 StartingShotgunAmmo = 5;
+	
+	UPROPERTY(EditAnywhere, meta = (ClampMin = 0))
+	int32 StartingSniperAmmo = 6;
 	
 	void InitializeCarriedAmmo();
 	
