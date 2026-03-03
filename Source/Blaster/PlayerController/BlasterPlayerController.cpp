@@ -149,6 +149,14 @@ void ABlasterPlayerController::SetHUDEquippedWeaponName(const EWeaponType Weapon
 			break;
 		case EWeaponType::EWT_RocketLauncher: EquippedWeaponName = FText::FromString(TEXT("Rocket Launcher"));
 			break;
+		case EWeaponType::EWT_Pistol: EquippedWeaponName = FText::FromString(TEXT("Pistol"));
+			break;
+		case EWeaponType::EWT_Shotgun: EquippedWeaponName = FText::FromString(TEXT("Shotgun"));
+			break;
+		case EWeaponType::EWT_SniperRifle: EquippedWeaponName = FText::FromString(TEXT("Sniper Rifle"));
+			break;
+		case EWeaponType::EWT_SubmachineGun: EquippedWeaponName = FText::FromString(TEXT("SMG"));
+			break;
 		// Empty text.
 		case EWeaponType::EWT_MAX: EquippedWeaponName = FText::FromString(TEXT(""));
 			break;
