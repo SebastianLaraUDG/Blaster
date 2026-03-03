@@ -209,6 +209,9 @@ private:
 	UPROPERTY(EditAnywhere, meta = (ClampMin = 0))
 	int32 StartingSniperAmmo = 6;
 	
+	UPROPERTY(EditAnywhere, meta = (ClampMin = 0))
+	int32 StartingGrenadeLauncherAmmo = 6;
+	
 	void InitializeCarriedAmmo();
 	
 	UPROPERTY(ReplicatedUsing = OnRep_CombatState, VisibleAnywhere)
