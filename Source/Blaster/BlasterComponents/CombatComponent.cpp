@@ -74,6 +74,8 @@ void UCombatComponent::TickComponent(float DeltaTime, ELevelTick TickType,
 
 void UCombatComponent::SetAiming(bool NewAiming)
 {
+	if (!Character) return;
+
 	bIsAiming = NewAiming;
 	/*
 	 * We set the value even before calling the ServerSetAiming() function for cosmetic (animation) effects.
@@ -82,9 +84,23 @@ void UCombatComponent::SetAiming(bool NewAiming)
 	ServerSetAiming(NewAiming);
 
 	// Change walk speed locally.
-	if (Character)
+	Character->GetCharacterMovement()->MaxWalkSpeed = NewAiming ? AimWalkSpeed : BaseWalkSpeed;
+
+	// Play aiming animation only with sniper rifle equipped.
+	if (Character->IsLocallyControlled() && EquippedWeapon && EquippedWeapon->GetWeaponType() == EWeaponType::EWT_SniperRifle)
 	{
-		Character->GetCharacterMovement()->MaxWalkSpeed = NewAiming ? AimWalkSpeed : BaseWalkSpeed;
+		Controller = Controller ? Controller.Get() : Cast<ABlasterPlayerController>(Character->Controller);
+		Controller->SetHUDSniperScope(NewAiming);
+		if (NewAiming)
+		{
+			if (ZoomInSniperRifle)
+			UGameplayStatics::PlaySound2D(this, ZoomInSniperRifle);
+		}
+		else
+		{
+			if (ZoomOutSniperRifle)
+			UGameplayStatics::PlaySound2D(this, ZoomOutSniperRifle);
+		}
 	}
 }
 
@@ -101,9 +117,10 @@ void UCombatComponent::OnRep_EquippedWeapon()
 {
 	if (EquippedWeapon && Character)
 	{
-		EquippedWeapon->SetWeaponState(EWeaponState::EWS_Equipped); /* We are calling this so that these properties are set here first before
-		AttachActor gets called to avoid issues with attaching the weapon while it is marked to simulate physics or something like that.		
-		*/
+		EquippedWeapon->SetWeaponState(EWeaponState::EWS_Equipped);
+		/* We are calling this so that these properties are set here first before
+			   AttachActor gets called to avoid issues with attaching the weapon while it is marked to simulate physics or something like that.		
+			   */
 		// Attach to character's hand socket.
 		if (const USkeletalMeshSocket* HandSocket = Character->GetMesh()->GetSocketByName(HandSocketName))
 		{
@@ -124,21 +141,20 @@ void UCombatComponent::OnRep_EquippedWeapon()
 }
 
 
-
 void UCombatComponent::FireButtonPressed(bool bPressed)
 {
 	bFireButtonPressed = bPressed;
 
 	if (bFireButtonPressed && EquippedWeapon)
 	{
-	  	Fire();
+		Fire();
 	}
 }
 
 void UCombatComponent::Fire()
 {
 	if (!CanFire()) return;
-	
+
 	bCanFire = false;
 	ServerFire(HitTarget);
 	if (EquippedWeapon)
@@ -171,7 +187,6 @@ void UCombatComponent::FireTimerFinished()
 		Reload();
 	}
 }
-
 
 
 void UCombatComponent::ServerFire_Implementation(const FVector_NetQuantize& TraceHitTarget)
@@ -231,7 +246,7 @@ void UCombatComponent::TraceUnderCrosshairs(FHitResult& TraceHitResult)
 			HUDPackage.CrosshairsColor = FLinearColor::White;
 			bAimingAtEnemy = false;
 		}
-		
+
 		if (!TraceHitResult.bBlockingHit)
 		{
 			TraceHitResult.ImpactPoint = End;
@@ -249,14 +264,15 @@ void UCombatComponent::SetHUDCrosshairs(float DeltaTime)
 	{
 		Controller = Cast<ABlasterPlayerController>(Character->GetController());
 	}
-	if (!Controller) return; // Abort if controller is null. This could still happen due to server travel. TODO: improve readability.
+	if (!Controller) return;
+	// Abort if controller is null. This could still happen due to server travel. TODO: improve readability.
 
 	if (!HUD)
 	{
 		HUD = Cast<ABlasterHUD>(Controller->GetHUD());
 	}
 	if (!HUD) return; // Abort if HUD is null. This could still happen due to server travel.  TODO: improve readability.
-	
+
 	if (EquippedWeapon)
 	{
 		HUDPackage.CrosshairCenter = EquippedWeapon->CrosshairsCenter;
@@ -287,7 +303,8 @@ void UCombatComponent::SetHUDCrosshairs(float DeltaTime)
 	// Include aiming factor.
 	if (bIsAiming)
 	{
-		CrosshairAimFactor = FMath::FInterpTo(CrosshairAimFactor, CrosshairsDisplacementWhileAiming, DeltaTime, 30.f /*TODO: convert to param? */);
+		CrosshairAimFactor = FMath::FInterpTo(CrosshairAimFactor, CrosshairsDisplacementWhileAiming, DeltaTime,
+		                                      30.f /*TODO: convert to param? */);
 	}
 	else
 	{
@@ -302,15 +319,17 @@ void UCombatComponent::SetHUDCrosshairs(float DeltaTime)
 	{
 		CrosshairEnemyFactor = FMath::FInterpTo(CrosshairEnemyFactor, 0.0f, DeltaTime, 30.f);
 	}
-	
-	// Shooting factor should always interpolate back to zero.
-	CrosshairShootingFactor = FMath::FInterpTo(CrosshairShootingFactor, 0.f, DeltaTime, CrosshairShootingFactorBackToZeroInterpSpeed);
 
-	HUDPackage.CrosshairSpread = 0.5f /* Hard coded value to spread crosshairs a little by default.  TODO: convert to param.*/ +
+	// Shooting factor should always interpolate back to zero.
+	CrosshairShootingFactor = FMath::FInterpTo(CrosshairShootingFactor, 0.f, DeltaTime,
+	                                           CrosshairShootingFactorBackToZeroInterpSpeed);
+
+	HUDPackage.CrosshairSpread = 0.5f
+		/* Hard coded value to spread crosshairs a little by default.  TODO: convert to param.*/ +
 		CrosshairVelocityFactor + CrosshairInAirFactor + CrosshairAimFactor +
 		CrosshairShootingFactor - CrosshairEnemyFactor;
-	
-	
+
+
 	HUD->SetHudPackage(HUDPackage);
 }
 
@@ -347,7 +366,7 @@ void UCombatComponent::EquipWeapon(AWeapon* WeaponToEquip)
 	{
 		EquippedWeapon->Drop();
 	}
-	
+
 	EquippedWeapon = WeaponToEquip;
 	EquippedWeapon->SetWeaponState(EWeaponState::EWS_Equipped);
 	// Attach to character's hand socket.
@@ -357,7 +376,7 @@ void UCombatComponent::EquipWeapon(AWeapon* WeaponToEquip)
 	}
 	EquippedWeapon->SetOwner(Character);
 	EquippedWeapon->SetHUDAmmo();
-	
+
 	// Check if we have ammo of the current weapon type and display that amount.
 	if (CarriedAmmoMap.Contains(EquippedWeapon->GetWeaponType()))
 	{
@@ -373,13 +392,13 @@ void UCombatComponent::EquipWeapon(AWeapon* WeaponToEquip)
 	{
 		UGameplayStatics::SpawnSoundAtLocation(this, EquippedWeapon->EquipSound, Character->GetActorLocation());
 	}
-	
+
 	// Auto-reload (if specified).
 	if (EquippedWeapon->bAutomaticReload && EquippedWeapon->IsEmpty())
 	{
 		Reload();
 	}
-	
+
 	// Stop orienting rotation to movement. This is to allow leaning animations in animation blueprint.
 	Character->GetCharacterMovement()->bOrientRotationToMovement = false;
 	Character->bUseControllerRotationYaw = true;
@@ -394,7 +413,8 @@ bool UCombatComponent::CanFire() const
 void UCombatComponent::Reload()
 {
 	// We can reload only if we have enough ammo, we have fired at least one projectile of the current magazine, and we are not already reloading.
-	if (CarriedAmmo > 0 && EquippedWeapon->GetAmmo() < EquippedWeapon->GetMagCapacity() && CombatState != ECombatState::ECS_Reloading)
+	if (CarriedAmmo > 0 && EquippedWeapon->GetAmmo() < EquippedWeapon->GetMagCapacity() && CombatState !=
+		ECombatState::ECS_Reloading)
 	{
 		ServerReload();
 	}
@@ -463,9 +483,9 @@ void UCombatComponent::UpdateAmmoValues()
 int32 UCombatComponent::AmountToReload() const
 {
 	if (!EquippedWeapon) return 0;
-	
+
 	const int32 RoomInMag = EquippedWeapon->GetMagCapacity() - EquippedWeapon->GetAmmo();
-	
+
 	if (CarriedAmmoMap.Contains(EquippedWeapon->GetWeaponType()))
 	{
 		// Ammo amount carried of this weapon type. 
@@ -489,10 +509,8 @@ void UCombatComponent::InitializeCarriedAmmo()
 {
 	CarriedAmmoMap.Emplace(EWeaponType::EWT_AssaultRifle, StartingARAmmo);
 	CarriedAmmoMap.Emplace(EWeaponType::EWT_RocketLauncher, StartingRocketAmmo);
-	CarriedAmmoMap.Emplace(EWeaponType::EWT_Pistol,StartingPistolAmmo);
-	CarriedAmmoMap.Emplace(EWeaponType::EWT_SubmachineGun,StartingSMGAmmo);
+	CarriedAmmoMap.Emplace(EWeaponType::EWT_Pistol, StartingPistolAmmo);
+	CarriedAmmoMap.Emplace(EWeaponType::EWT_SubmachineGun, StartingSMGAmmo);
 	CarriedAmmoMap.Emplace(EWeaponType::EWT_Shotgun, StartingShotgunAmmo);
 	CarriedAmmoMap.Emplace(EWeaponType::EWT_SniperRifle, StartingSniperAmmo);
 }
-
-

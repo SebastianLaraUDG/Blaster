@@ -679,6 +679,17 @@ void ABlasterCharacter::MulticastElim_Implementation()
 	{
 		UGameplayStatics::SpawnSoundAtLocation(this, ElimBotSound, GetActorLocation());
 	}
+	
+	// Remove sniper rifle aiming on death.
+	const bool bHideSniperScope = IsLocallyControlled() && 
+		CombatComponent && 
+		CombatComponent->bIsAiming && 
+		CombatComponent->EquippedWeapon && 
+		CombatComponent->EquippedWeapon->GetWeaponType() == EWeaponType::EWT_SniperRifle;
+	if (bHideSniperScope)
+	{
+		BlasterPlayerController->SetHUDSniperScope(false);
+	}
 }
 
 void ABlasterCharacter::OnRep_OverlappingWeapon(AWeapon* LastWeapon)

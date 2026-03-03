@@ -41,6 +41,12 @@ public:
 	// Designed to be called from notifies. Set combat state to Unoccupied in server.
 	UFUNCTION(BlueprintCallable)
 	void FinishReloading();
+	
+	UPROPERTY(EditDefaultsOnly)
+	TObjectPtr<USoundCue> ZoomInSniperRifle;
+	
+	UPROPERTY(EditDefaultsOnly)
+	TObjectPtr<USoundCue> ZoomOutSniperRifle;
 
 protected:
 	virtual void BeginPlay() override;
@@ -173,9 +179,6 @@ private:
 	bool bCanFire = true;
 	void StartFireTimer();
 	void FireTimerFinished();
-	
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Combat, meta = (AllowPrivateAccess = true))
-	float FireDelay;
 
 	bool CanFire() const;
 	

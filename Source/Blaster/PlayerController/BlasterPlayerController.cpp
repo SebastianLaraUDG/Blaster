@@ -11,6 +11,7 @@
 #include "Blaster/HUD/Announcement.h"
 #include "Blaster/HUD/BlasterHUD.h"
 #include "Blaster/HUD/CharacterOverlay.h"
+#include "Blaster/HUD/SniperScope.h"
 #include "Blaster/PlayerState/BlasterPlayerState.h"
 #include "Components/ProgressBar.h"
 #include "Components/TextBlock.h"
@@ -22,6 +23,9 @@
  * TODO: This script uses the same code many times with minor changes, so
  * maybe I could refactor it to use functions and that way make it more readable.
  */
+
+
+
 void ABlasterPlayerController::BeginPlay()
 {
 	Super::BeginPlay();
@@ -203,6 +207,34 @@ void ABlasterPlayerController::SetHUDAnnouncementCountdown(const float Countdown
 	}
 }
 
+void ABlasterPlayerController::SetHUDSniperScope(const bool bIsAiming)
+{
+	BlasterHUD = BlasterHUD ? BlasterHUD.Get() : Cast<ABlasterHUD>(GetHUD());
+	if (!BlasterHUD->SniperScope)
+	{
+		BlasterHUD->AddSniperScope();
+	}
+	
+	const bool bHUDValid = BlasterHUD && BlasterHUD->SniperScope && BlasterHUD->SniperScope->ScopeZoomIn;
+	if (!bHUDValid)
+	{
+		return;
+	}
+	
+	// Play aim animation (zoom in).
+	if (bIsAiming)
+	{
+		BlasterHUD->SniperScope->SetVisibility(ESlateVisibility::Visible);
+		BlasterHUD->SniperScope->PlayAnimation(BlasterHUD->SniperScope->ScopeZoomIn);
+	}
+	// Play reverse aim animation (zoom out).
+	else
+	{
+		BlasterHUD->SniperScope->PlayAnimation(BlasterHUD->SniperScope->ScopeZoomIn, 0.f, 1,
+		                                       EUMGSequencePlayMode::Reverse);
+	}
+}
+
 void ABlasterPlayerController::SetHUDTime()
 {
 	float TimeLeft = 0.f;
@@ -332,6 +364,21 @@ void ABlasterPlayerController::ReceivedPlayer()
 	if (IsLocalController())
 	{
 		ServerRequestServerTime(GetWorld()->GetTimeSeconds());
+		/*
+		 // Add sniper in next tick due to its dependency with the player controller (it cannot be created yet in begin play).
+		const auto AddSniperScopeCallback = FTimerDelegate::CreateLambda([this]
+			{
+				// Add sniper scope and hide it.
+				BlasterHUD = BlasterHUD ? BlasterHUD.Get() : Cast<ABlasterHUD>(GetHUD());
+				BlasterHUD->AddSniperScope();
+			if (BlasterHUD->SniperScope)
+				BlasterHUD->SniperScope->SetVisibility(ESlateVisibility::Hidden);
+			}
+		);
+		//GetWorldTimerManager().SetTimerForNextTick(AddSniperScopeCallback);
+		FTimerHandle TimerHandle;
+		GetWorldTimerManager().SetTimer(TimerHandle, AddSniperScopeCallback, 5.f, false);
+		*/
 	}
 }
 

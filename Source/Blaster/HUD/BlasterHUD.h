@@ -6,6 +6,7 @@
 #include "GameFramework/HUD.h"
 #include "BlasterHUD.generated.h"
 
+class USniperScope;
 /*
  * A struct with all crosshair positions.
  */
@@ -41,20 +42,27 @@ class BLASTER_API ABlasterHUD : public AHUD
 public:
 	virtual void DrawHUD() override;
 	void AddCharacterOverlay();
-	
-	UPROPERTY(EditAnywhere,Category="Player Stats")
+
+	UPROPERTY(EditAnywhere, Category="Player Stats")
 	TSubclassOf<UUserWidget> CharacterOverlayClass;
 	
 	UPROPERTY()
 	TObjectPtr<UCharacterOverlay> CharacterOverlay;
-	
-	UPROPERTY(EditAnywhere,Category="Announcement")
+
+	UPROPERTY(EditAnywhere, Category="Announcement")
 	TSubclassOf<UUserWidget> AnnouncementClass;
 	
 	UPROPERTY()
 	TObjectPtr<UAnnouncement> Announcement;
+
+	UPROPERTY(EditAnywhere, Category="Gameplay|Sniper Scope")
+	TSubclassOf<UUserWidget> SniperScopeClass;
+	
+	UPROPERTY()
+	TObjectPtr<USniperScope> SniperScope;
 	
 	void AddAnnouncement();
+	void AddSniperScope();
 	
 protected:
 	virtual void BeginPlay() override;

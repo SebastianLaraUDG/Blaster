@@ -31,6 +31,7 @@ public:
 	void SetHUDEquippedWeaponName(const EWeaponType WeaponType);
 	void SetHUDMatchCountdown(const float CountdownTime); // If only 30 seconds left, display some text animation and set text color to red.
 	void SetHUDAnnouncementCountdown(float CountdownTime); // Same as SetHUDMatchCountdown, but with a different TextBlock. TODO: checks and calculations could be refactorized into a separate function to make cleaner code.
+	void SetHUDSniperScope(const bool bIsAiming);
 	
 	void OnMatchStateSet(const FName& State);
 
@@ -72,7 +73,7 @@ protected:
 	UFUNCTION(Client,Reliable)
 	void ClientJoinMidGame(const FName& StateOfMatch, const float Warmup, const float Match, const float Cooldown, const float StartingTime);
 	
-	/* Different options to display: No winner, You are the winner, Sole winner, Top winners of the match*/
+	/* Different options to display: No winner, You are the winner, Sole winner, Top winners of the match. */
 	virtual void DisplayWinner() const;
 	
 private:
