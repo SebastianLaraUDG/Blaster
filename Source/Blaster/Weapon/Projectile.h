@@ -26,7 +26,7 @@ struct FImpactEffect
 	TObjectPtr<USoundCue> ImpactSound;
 };
 
-	
+
 /*
  *
  */
@@ -37,11 +37,13 @@ class BLASTER_API AProjectile : public AActor
 
 public:
 	AProjectile();
-	virtual void Tick(float DeltaTime) override;
 	virtual void Destroyed() override;
 
 protected:
 	virtual void BeginPlay() override;
+	// Useful for rockets and grenades. It is not convenient for bullets.
+	void StartDestroyTimer();
+	void SpawnTrailSystem();
 
 	UFUNCTION()
 	virtual void OnHit(UPrimitiveComponent* HitComp, AActor* HitOther, UPrimitiveComponent* OtherComp,
@@ -64,6 +66,12 @@ protected:
 	UPROPERTY(EditAnywhere)
 	TObjectPtr<UBoxComponent> CollisionBox;
 	
+	UPROPERTY(EditDefaultsOnly, Category = "VFX|Projectile")
+	TObjectPtr<UNiagaraSystem> TrailSystem;
+	
+	UPROPERTY()
+	TObjectPtr<UNiagaraComponent> TrailSystemComponent;
+	
 	// Default particle to spawn if hit surface does not have a physics material set.
 	UPROPERTY(EditDefaultsOnly, Category=ImpactEffects)
 	TObjectPtr<UNiagaraSystem> DefaultImpactParticle;
@@ -72,10 +80,34 @@ protected:
 	UPROPERTY(EditAnywhere, Category=ImpactEffects)
 	TObjectPtr<USoundCue> DefaultImpactSound;
 
-private:
-
-	UPROPERTY(EditAnywhere)
+	// Creation must be implemented in every class constructor.
+	UPROPERTY(VisibleAnywhere)
+	TObjectPtr<UStaticMeshComponent> ProjectileMesh;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	TObjectPtr<UProjectileMovementComponent> ProjectileMovement;
+	
+	// The amount of damage to apply when an actor is on the outer radius. Use only with grenades and missiles.
+	UPROPERTY(EditDefaultsOnly, Category = "Damage|Explosion Area",
+		meta = (AllowPrivateAccess = true, ClampMin = 0.000001))
+	float MinimumDamage = 0.1f;
+
+	// Radius of the full damage area. Use only with grenades and missiles.
+	UPROPERTY(EditDefaultsOnly, Category = "Damage|Explosion Area",
+		meta = (AllowPrivateAccess = true, ClampMin = 0.000001))
+	float DamageInnerRadius = 10.f;
+
+	// Radius of the minimum damage area. Use only with grenades and missiles.
+	UPROPERTY(EditDefaultsOnly, Category = "Damage|Explosion Area",
+		meta = (AllowPrivateAccess = true, ClampMin = 0.000001))
+	float DamageOuterRadius = 25.f;
+
+	// Falloff exponent of damage from inner to outer radius. Use only with grenades and missiles.
+	UPROPERTY(EditDefaultsOnly, Category = "Damage|Explosion Area",
+		meta = (AllowPrivateAccess = true, ClampMin = 0.000001))
+	float DamageFalloff = 1.f;
+	
+private:
 
 	/* VFX. */
 	UPROPERTY(EditDefaultsOnly, Category=VFX)
@@ -87,4 +119,10 @@ private:
 	// Different impact effects depending on surface hit.
 	UPROPERTY(EditDefaultsOnly, Category=ImpactEffects)
 	TMap<TEnumAsByte<EPhysicalSurface>, FImpactEffect> ImpactEffects;
+	
+	
+	UPROPERTY(EditAnywhere, meta = (Units = "Seconds", ClampMin = 0.000001f))
+	float DestroyTime = 3.f;
+	
+	FTimerHandle DestroyTimer;
 };

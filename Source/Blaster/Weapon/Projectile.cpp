@@ -13,7 +13,7 @@
 
 AProjectile::AProjectile()
 {
-	PrimaryActorTick.bCanEverTick = true;
+	PrimaryActorTick.bCanEverTick = false;
 	bReplicates = true;
 	AActor::SetReplicateMovement(true);
 
@@ -55,9 +55,26 @@ void AProjectile::BeginPlay()
 	}
 }
 
-void AProjectile::Tick(float DeltaTime)
+// Destruction is handled with a lambda.
+void AProjectile::StartDestroyTimer()
 {
-	Super::Tick(DeltaTime);
+	UE_LOG(LogLevel, Display, TEXT("Started destroy timer for %s"), *GetNameSafe(this))
+	
+	auto DestroyTimerFinishedCallback = FTimerDelegate::CreateLambda([this]
+	{
+		Destroy();
+	});
+	GetWorldTimerManager().SetTimer(DestroyTimer, DestroyTimerFinishedCallback, DestroyTime, false);
+}
+
+void AProjectile::SpawnTrailSystem()
+{
+	if (TrailSystem)
+	{
+		TrailSystemComponent = UNiagaraFunctionLibrary::SpawnSystemAttached(
+			TrailSystem, GetRootComponent(), NAME_None, GetActorLocation(), GetActorRotation(),
+			EAttachLocation::Type::KeepWorldPosition, false);
+	}
 }
 
 void AProjectile::OnHit(UPrimitiveComponent* HitComp, AActor* HitOther, UPrimitiveComponent* OtherComp,
@@ -103,6 +120,17 @@ void AProjectile::Destroyed()
 {
 	Super::Destroyed();
 
+	// Make sure if the default particle is set and impact particle is not, use the default. 
+	if (DefaultImpactParticle && !ImpactParticle)
+	{
+		ImpactParticle = DefaultImpactParticle;
+	}
+	// Same with sound.
+	if (DefaultImpactSound && !ImpactSound)
+	{
+		ImpactSound = DefaultImpactSound;
+	}
+	
 	if (ImpactParticle)
 	{
 		UNiagaraFunctionLibrary::SpawnSystemAtLocation(this, ImpactParticle, GetActorLocation(), GetActorRotation());

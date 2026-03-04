@@ -13,9 +13,9 @@
 
 AProjectileRocket::AProjectileRocket()
 {
-	RocketMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Rocket Mesh"));
-	RocketMesh->SetupAttachment(RootComponent);
-	RocketMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	ProjectileMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Rocket Mesh"));
+	ProjectileMesh->SetupAttachment(RootComponent);
+	ProjectileMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 }
 
 void AProjectileRocket::BeginPlay()
@@ -30,12 +30,7 @@ void AProjectileRocket::BeginPlay()
 	}
 
 	// Spawn trail.
-	if (TrailSystem)
-	{
-		TrailSystemComponent = UNiagaraFunctionLibrary::SpawnSystemAttached(
-			TrailSystem, GetRootComponent(), FName(), GetActorLocation(), GetActorRotation(),
-			EAttachLocation::Type::KeepWorldPosition, false);
-	}
+	SpawnTrailSystem();
 	// Spawn looping sound with attenuation.
 	if (ProjectileLoop && LoopingSoundAttenuation)
 	{
@@ -43,12 +38,6 @@ void AProjectileRocket::BeginPlay()
 			ProjectileLoop, GetRootComponent(), FName(), GetActorLocation(), GetActorRotation(),
 			EAttachLocation::Type::KeepWorldPosition, false, 1.f, 1.f, 0.f, LoopingSoundAttenuation, nullptr, false);
 	}
-}
-
-// TODO: change to a lambda inside OnHit?
-void AProjectileRocket::DestroyTimerFinished()
-{
-	Destroy();
 }
 
 void AProjectileRocket::Destroyed()
@@ -61,12 +50,7 @@ void AProjectileRocket::OnHit(UPrimitiveComponent* HitComp, AActor* HitOther, UP
 {
 	const auto FiringPawn = GetInstigator();
 	const auto FiringController = FiringPawn->GetController();
-
-	GetWorldTimerManager().SetTimer(
-		DestroyTimer, this, &AProjectileRocket::DestroyTimerFinished,
-		DestroyTime
-	);
-
+	
 	// Spawn impact particles.
 	if (DefaultImpactParticle)
 	{
@@ -79,9 +63,9 @@ void AProjectileRocket::OnHit(UPrimitiveComponent* HitComp, AActor* HitOther, UP
 		UGameplayStatics::SpawnSoundAtLocation(this, DefaultImpactSound, GetActorLocation());
 	}
 	// Hide mesh.
-	if (RocketMesh)
+	if (ProjectileMesh)
 	{
-		RocketMesh->SetVisibility(false);
+		ProjectileMesh->SetVisibility(false);
 	}
 	// Disable collision.
 	if (CollisionBox)
@@ -92,36 +76,19 @@ void AProjectileRocket::OnHit(UPrimitiveComponent* HitComp, AActor* HitOther, UP
 	if (TrailSystemComponent && TrailSystemComponent->GetSystemInstanceController())
 	{
 		TrailSystemComponent->GetSystemInstanceController()->Deactivate();
+		
 	}
 	// Stop movement looping sound.
 	if (ProjectileLoopComponent && ProjectileLoopComponent->IsPlaying())
 	{
 		ProjectileLoopComponent->Stop();
 	}
-	
-	// Draw sphere at hit location.
-	UKismetSystemLibrary::DrawDebugSphere(this, GetActorLocation(), 10.f, 12, FLinearColor::Gray, 15.f);
-	// Draw inner radius
-	UKismetSystemLibrary::DrawDebugSphere(this, GetActorLocation(), DamageInnerRadius, 12, FLinearColor::Red, 15.f);
-	// Draw outer radius
-	UKismetSystemLibrary::DrawDebugSphere(this, GetActorLocation(), DamageOuterRadius, 12, FLinearColor::Yellow, 15.f);
 
 	if (!FiringPawn || !FiringController || !HasAuthority()) return;
 
-	UGameplayStatics::ApplyRadialDamageWithFalloff(
-		this,
-		Damage,
-		MinimumDamage,
-		GetActorLocation(),
-		DamageInnerRadius,
-		DamageOuterRadius,
-		DamageFalloff,
-		UDamageType::StaticClass(),
-		TArray<AActor*>(), // All actors within radius will receive damage.
-		this,
-		FiringController
-	);
+	ExplodeDamage(Damage, MinimumDamage, DamageInnerRadius, DamageOuterRadius, DamageFalloff);
 
+	StartDestroyTimer();
 	/*
 	 *Super::OnHit(HitComp, HitOther, OtherComp, NormalImpulse, Hit);
 	 * This caused calling destroy and spawning impact particles and sound, but since it was called on
