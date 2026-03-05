@@ -180,22 +180,22 @@ void ABlasterCharacter::PlayReloadMontage() const
 		{
 		case EWeaponType::EWT_AssaultRifle: SectionName = FName("Rifle");
 			break;
-		case EWeaponType::EWT_RocketLauncher: SectionName = FName("Rifle");
+		case EWeaponType::EWT_RocketLauncher: SectionName = FName("RocketLauncher");
 			// Specify section name if you implement new sections and animations.
 			break;
-		case EWeaponType::EWT_Pistol: SectionName = FName("Rifle");
+		case EWeaponType::EWT_Pistol: SectionName = FName("Pistol");
 			// Specify section name if you implement new sections and animations.
 			break;
-		case EWeaponType::EWT_SubmachineGun: SectionName = FName("Rifle");
+		case EWeaponType::EWT_SubmachineGun: SectionName = FName("Pistol");
 			// Specify section name if you implement new sections and animations.
 			break;
-		case EWeaponType::EWT_Shotgun: SectionName = FName("Rifle");
+		case EWeaponType::EWT_Shotgun: SectionName = FName("Shotgun");
 			// Specify section name if you implement new sections and animations.
 			break;
-		case EWeaponType::EWT_SniperRifle: SectionName = FName("Rifle");
+		case EWeaponType::EWT_SniperRifle: SectionName = FName("SniperRifle");
 			// Specify section name if you implement new sections and animations.
 			break;
-		case EWeaponType::EWT_GrenadeLauncher: SectionName = FName("Rifle");
+		case EWeaponType::EWT_GrenadeLauncher: SectionName = FName("GrenadeLauncher");
 			// Specify section name if you implement new sections and animations.
 			break;
 		case EWeaponType::EWT_MAX: break;
