@@ -217,7 +217,9 @@ void ABlasterCharacter::PlayElimMontage()
 void ABlasterCharacter::PlayHitReactMontage() const
 {
 	if (!CombatComponent || !IsWeaponEquipped()) return;
-
+	if (CombatComponent->CombatState == ECombatState::ECS_Reloading) return; // There is the case where the character received damage while reloading (found this while receiving damage from a grenade explosion)
+																			// so it started playing Hit react montage therefore aborting the reload montage so character would never be able to shoot or reload ever again.
+	
 	if (const auto AnimInstance = GetMesh()->GetAnimInstance(); AnimInstance && HitReactMontage)
 	{
 		AnimInstance->Montage_Play(HitReactMontage);
