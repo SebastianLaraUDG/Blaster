@@ -42,6 +42,13 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void FinishReloading();
 	
+	// Jump to the shotgun end anim montage section. Explicit jump section is "ShotgunEnd" (hardcoded).
+	void JumpToShotgunEnd();
+	
+	// Designed to be called from anim notifies.
+	UFUNCTION(BlueprintCallable)
+	void ShotgunShellReload();
+	
 	UPROPERTY(EditDefaultsOnly)
 	TObjectPtr<USoundCue> ZoomInSniperRifle;
 	
@@ -221,4 +228,5 @@ private:
 	void OnRep_CombatState();
 	
 	void UpdateAmmoValues();
+	void UpdateShotgunAmmoValues();
 };
