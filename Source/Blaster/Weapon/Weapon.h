@@ -28,6 +28,9 @@ enum class EWeaponState : uint8
 
 /*
  * Base Weapon class.
+ * Custom depth is enabled by default.
+ * If you do not see the custom depth effect, go to Project Settings, Engine - Rendering
+ * Custom Depth-Stencil Pass and select Enabled with Stencil.
  */
 UCLASS(Abstract, Blueprintable)
 class BLASTER_API AWeapon : public AActor
@@ -95,6 +98,8 @@ public:
 	
 	UPROPERTY(EditAnywhere)
 	TObjectPtr<USoundCue> EquipSound;
+	
+	void EnableCustomDepth(const bool bEnable);
 	
 protected:
 	virtual void BeginPlay() override;
