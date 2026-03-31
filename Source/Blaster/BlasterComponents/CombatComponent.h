@@ -45,6 +45,9 @@ public:
 	// Jump to the shotgun end anim montage section. Explicit jump section is "ShotgunEnd" (hardcoded).
 	void JumpToShotgunEnd();
 	
+	UFUNCTION(BlueprintCallable)
+	void ThrowGrenadeFinished();
+	
 	// Designed to be called from anim notifies.
 	UFUNCTION(BlueprintCallable)
 	void ShotgunShellReload();
@@ -85,6 +88,12 @@ protected:
 
 	// Calculates 
 	int32 AmountToReload() const;
+	
+	void ThrowGrenade();
+
+	UFUNCTION(Server, Reliable)
+	void ServerThrowGrenade();
+	
 private:
 //	UPROPERTY()
 	TObjectPtr<ABlasterCharacter> Character;

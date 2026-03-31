@@ -133,6 +133,7 @@ void ABlasterCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCo
 	EnhancedInput->BindAction(FireInputAction, ETriggerEvent::Started, this, &ThisClass::FireWeaponPressed);
 	EnhancedInput->BindAction(FireInputAction, ETriggerEvent::Completed, this, &ThisClass::FireWeaponReleased);
 	EnhancedInput->BindAction(ReloadInputAction, ETriggerEvent::Started, this, &ThisClass::ReloadButtonPressed);
+	EnhancedInput->BindAction(ThrowGrenadeInputAction, ETriggerEvent::Started, this, &ThisClass::ThrowGrenadeButtonPressed);
 }
 
 void ABlasterCharacter::GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const
@@ -204,15 +205,31 @@ void ABlasterCharacter::PlayReloadMontage() const
 	}
 }
 
-void ABlasterCharacter::PlayElimMontage()
+void ABlasterCharacter::PlayElimMontage() const
 {
+	/*
 	UAnimInstance* const AnimInstance = GetMesh()->GetAnimInstance();
 	if (ElimMontage && AnimInstance)
 	{
 		AnimInstance->Montage_Play(ElimMontage);
 	}
+	*/
+	PlayMontage(ElimMontage);
 }
 
+void ABlasterCharacter::PlayThrowGrenadeMontage() const
+{
+	PlayMontage(ThrowGrenadeMontage);
+}
+
+void ABlasterCharacter::PlayMontage(UAnimMontage* const Montage) const
+{
+	UAnimInstance* const AnimInstance = GetMesh()->GetAnimInstance();
+	if (Montage && AnimInstance)
+	{
+		AnimInstance->Montage_Play(Montage);
+	}
+}
 
 void ABlasterCharacter::PlayHitReactMontage() const
 {
@@ -363,6 +380,14 @@ void ABlasterCharacter::ReloadButtonPressed()
 	if (CombatComponent)
 	{
 		CombatComponent->Reload();
+	}
+}
+
+void ABlasterCharacter::ThrowGrenadeButtonPressed()
+{
+	if (CombatComponent)
+	{
+		CombatComponent->ThrowGrenade();
 	}
 }
 

@@ -139,6 +139,14 @@ void UCombatComponent::OnRep_EquippedWeapon()
 	}
 }
 
+void UCombatComponent::ServerThrowGrenade_Implementation()
+{
+	CombatState = ECombatState::ECS_ThrowingGrenade;
+	if (Character)
+	{
+		Character->PlayThrowGrenadeMontage();
+	}
+}
 
 void UCombatComponent::FireButtonPressed(bool bPressed)
 {
@@ -366,6 +374,7 @@ void UCombatComponent::InterpFOV(const float& DeltaTime)
 void UCombatComponent::EquipWeapon(AWeapon* WeaponToEquip)
 {
 	if (!Character || !WeaponToEquip) return;
+	if (CombatState != ECombatState::ECS_Unoccupied) return;
 
 	// Drop already equipped weapon.
 	if (EquippedWeapon)
@@ -423,9 +432,9 @@ bool UCombatComponent::CanFire() const
 
 void UCombatComponent::Reload()
 {
-	// We can reload only if we have enough ammo, we have fired at least one projectile of the current magazine, and we are not already reloading.
-	if (CarriedAmmo > 0 && EquippedWeapon->GetAmmo() < EquippedWeapon->GetMagCapacity() && CombatState !=
-		ECombatState::ECS_Reloading)
+	// We can reload only if we have enough ammo, we have fired at least one projectile of the current magazine, and we are unoccupied.
+	if (CarriedAmmo > 0 && EquippedWeapon->GetAmmo() < EquippedWeapon->GetMagCapacity() && CombatState ==
+		ECombatState::ECS_Unoccupied)
 	{
 		ServerReload();
 	}
@@ -464,6 +473,12 @@ void UCombatComponent::OnRep_CombatState()
 		if (bFireButtonPressed)
 		{
 			Fire();
+		}
+		break;
+	case ECombatState::ECS_ThrowingGrenade:
+		if (Character && !Character->IsLocallyControlled())
+		{
+			Character->PlayThrowGrenadeMontage();
 		}
 		break;
 	}
@@ -524,6 +539,12 @@ void UCombatComponent::JumpToShotgunEnd()
 	}
 }
 
+// CombatState = ECombatState::ECS_Unoccupied;
+void UCombatComponent::ThrowGrenadeFinished()
+{
+	CombatState = ECombatState::ECS_Unoccupied;
+}
+
 void UCombatComponent::ShotgunShellReload()
 {
 	if (Character && Character->HasAuthority())
@@ -571,4 +592,19 @@ void UCombatComponent::InitializeCarriedAmmo()
 	CarriedAmmoMap.Emplace(EWeaponType::EWT_Shotgun, StartingShotgunAmmo);
 	CarriedAmmoMap.Emplace(EWeaponType::EWT_SniperRifle, StartingSniperAmmo);
 	CarriedAmmoMap.Emplace(EWeaponType::EWT_GrenadeLauncher, StartingGrenadeLauncherAmmo);
+}
+
+void UCombatComponent::ThrowGrenade()
+{
+	if (CombatState != ECombatState::ECS_Unoccupied) return;
+	
+	CombatState = ECombatState::ECS_ThrowingGrenade;
+	if (Character)
+	{
+		Character->PlayThrowGrenadeMontage();
+		if (!Character->HasAuthority())
+		{
+			ServerThrowGrenade();
+		}
+	}
 }

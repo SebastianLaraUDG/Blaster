@@ -61,6 +61,9 @@ public:
 	UPROPERTY(Replicated)
 	bool bDisableGameplay = false;
 	
+	void PlayElimMontage() const;
+	void PlayThrowGrenadeMontage() const;
+	
 protected:
 	virtual void BeginPlay() override;
 
@@ -80,6 +83,9 @@ protected:
 	void FireWeaponReleased();
 	// Reloading weapon.
 	void ReloadButtonPressed();
+	// Launching grenade.
+	void ThrowGrenadeButtonPressed();
+	
 	
 	// Ignores velocity in Z axis.
 	float CalculateSpeed() const;
@@ -156,6 +162,9 @@ private:
 	UPROPERTY(EditAnywhere, Category = Combat)
 	TObjectPtr<UAnimMontage> ElimMontage;
 	
+	UPROPERTY(EditAnywhere, Category = Combat)
+	TObjectPtr<UAnimMontage> ThrowGrenadeMontage;
+	
 	void HideCharacterIfCameraClose() const;
 	
 	// Distance from the camera to the player at which character mesh and weapon will be invisible.
@@ -178,7 +187,8 @@ private:
 	TObjectPtr<ABlasterPlayerController> BlasterPlayerController;
 	
 	
-	void PlayElimMontage();
+	// Defined only to avoid duplicate code with the PlayElim, PlayThrow, and future functions.
+	void PlayMontage(UAnimMontage* const Montage) const;
 	
 	void OnHealthChanged(float NewHealth, float DeltaHealth, AController* InstigatorController);
 	
@@ -261,6 +271,9 @@ public:
 	
 	UPROPERTY(EditAnywhere, Category = Input)
 	TObjectPtr<UInputAction> ReloadInputAction;
+	
+	UPROPERTY(EditAnywhere, Category = Input)
+	TObjectPtr<UInputAction> ThrowGrenadeInputAction;
 
 	/*~ Fin de seccion de inputs. */
 	
