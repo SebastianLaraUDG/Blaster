@@ -94,6 +94,13 @@ protected:
 	UFUNCTION(Server, Reliable)
 	void ServerThrowGrenade();
 	
+	void DropEquippedWeapon();
+	void AttachActorToRightHand(const AActor* ActorToAttach) const;
+	void AttachActorToLeftHand(const AActor* ActorToAttach) const;
+	void UpdateCarriedAmmo();
+	void PlayEquipWeaponSound() const;
+	void ReloadEmptyWeapon();
+	
 private:
 //	UPROPERTY()
 	TObjectPtr<ABlasterCharacter> Character;

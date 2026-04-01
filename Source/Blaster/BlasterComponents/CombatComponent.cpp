@@ -121,17 +121,11 @@ void UCombatComponent::OnRep_EquippedWeapon()
 			   AttachActor gets called to avoid issues with attaching the weapon while it is marked to simulate physics or something like that.		
 			   */
 		// Attach to character's hand socket.
-		if (const USkeletalMeshSocket* HandSocket = Character->GetMesh()->GetSocketByName(HandSocketName))
-		{
-			HandSocket->AttachActor(EquippedWeapon, Character->GetMesh());
-		}
+		AttachActorToRightHand(EquippedWeapon);
 		Character->GetCharacterMovement()->bOrientRotationToMovement = false;
 		Character->bUseControllerRotationYaw = true;
 		// Play sound when equipped.
-		if (EquippedWeapon->EquipSound)
-		{
-			UGameplayStatics::PlaySoundAtLocation(this, EquippedWeapon->EquipSound, Character->GetActorLocation());
-		}
+		PlayEquipWeaponSound();
 		if (Controller)
 		{
 			Controller->SetHUDEquippedWeaponName(EquippedWeapon->GetWeaponType());
@@ -145,6 +139,7 @@ void UCombatComponent::ServerThrowGrenade_Implementation()
 	if (Character)
 	{
 		Character->PlayThrowGrenadeMontage();
+		AttachActorToLeftHand(EquippedWeapon);
 	}
 }
 
@@ -376,22 +371,59 @@ void UCombatComponent::EquipWeapon(AWeapon* WeaponToEquip)
 	if (!Character || !WeaponToEquip) return;
 	if (CombatState != ECombatState::ECS_Unoccupied) return;
 
-	// Drop already equipped weapon.
+	DropEquippedWeapon();
+	EquippedWeapon = WeaponToEquip;
+	EquippedWeapon->SetWeaponState(EWeaponState::EWS_Equipped);
+	
+	AttachActorToRightHand(EquippedWeapon);
+	EquippedWeapon->SetOwner(Character);
+	EquippedWeapon->SetHUDAmmo();
+
+	UpdateCarriedAmmo();
+	PlayEquipWeaponSound();
+
+	ReloadEmptyWeapon();
+	
+	// Stop orienting rotation to movement. This is to allow leaning animations in animation blueprint.
+	Character->GetCharacterMovement()->bOrientRotationToMovement = false;
+	Character->bUseControllerRotationYaw = true;
+}
+
+void UCombatComponent::DropEquippedWeapon()
+{
 	if (EquippedWeapon)
 	{
 		EquippedWeapon->Drop();
 	}
+}
 
-	EquippedWeapon = WeaponToEquip;
-	EquippedWeapon->SetWeaponState(EWeaponState::EWS_Equipped);
-	// Attach to character's hand socket.
+void UCombatComponent::AttachActorToRightHand(const AActor* ActorToAttach) const
+{
+	if (!Character || !Character->GetMesh() || !ActorToAttach) return;
+	
 	if (const USkeletalMeshSocket* HandSocket = Character->GetMesh()->GetSocketByName(HandSocketName))
 	{
 		HandSocket->AttachActor(EquippedWeapon, Character->GetMesh());
 	}
-	EquippedWeapon->SetOwner(Character);
-	EquippedWeapon->SetHUDAmmo();
+}
 
+// Hardcoded "PistolLeftHandSocket" and "LeftHandSocket"
+void UCombatComponent::AttachActorToLeftHand(const AActor* ActorToAttach) const
+{
+	if (!Character || !Character->GetMesh() || !ActorToAttach || !EquippedWeapon) return;
+	const bool bUsePistolSocket = 
+		EquippedWeapon->GetWeaponType() == EWeaponType::EWT_Pistol || EquippedWeapon->GetWeaponType() == EWeaponType::EWT_SubmachineGun;
+	
+	const FName SocketName = bUsePistolSocket ? FName("PistolLeftHandSocket") : FName("LeftHandSocket");
+	
+	if (const USkeletalMeshSocket* HandSocket = Character->GetMesh()->GetSocketByName(SocketName))
+	{
+		HandSocket->AttachActor(EquippedWeapon, Character->GetMesh());
+	}
+}
+
+void UCombatComponent::UpdateCarriedAmmo()
+{
 	// Check if we have ammo of the current weapon type and display that amount.
 	if (CarriedAmmoMap.Contains(EquippedWeapon->GetWeaponType()))
 	{
@@ -402,21 +434,23 @@ void UCombatComponent::EquipWeapon(AWeapon* WeaponToEquip)
 		Controller->SetHUDWeaponCarriedAmmo(CarriedAmmo);
 		Controller->SetHUDEquippedWeaponName(EquippedWeapon->GetWeaponType());
 	}
-	// Play sound when equipped.
-	if (EquippedWeapon->EquipSound)
+}
+
+void UCombatComponent::PlayEquipWeaponSound() const
+{
+	if (Character && EquippedWeapon && EquippedWeapon->EquipSound)
 	{
 		UGameplayStatics::SpawnSoundAtLocation(this, EquippedWeapon->EquipSound, Character->GetActorLocation());
 	}
+}
 
+void UCombatComponent::ReloadEmptyWeapon()
+{
 	// Auto-reload (if specified).
 	if (EquippedWeapon->bAutomaticReload && EquippedWeapon->IsEmpty())
 	{
 		Reload();
 	}
-
-	// Stop orienting rotation to movement. This is to allow leaning animations in animation blueprint.
-	Character->GetCharacterMovement()->bOrientRotationToMovement = false;
-	Character->bUseControllerRotationYaw = true;
 }
 
 bool UCombatComponent::CanFire() const
@@ -479,6 +513,7 @@ void UCombatComponent::OnRep_CombatState()
 		if (Character && !Character->IsLocallyControlled())
 		{
 			Character->PlayThrowGrenadeMontage();
+			AttachActorToLeftHand(EquippedWeapon);
 		}
 		break;
 	}
@@ -543,6 +578,7 @@ void UCombatComponent::JumpToShotgunEnd()
 void UCombatComponent::ThrowGrenadeFinished()
 {
 	CombatState = ECombatState::ECS_Unoccupied;
+	AttachActorToRightHand(EquippedWeapon);
 }
 
 void UCombatComponent::ShotgunShellReload()
@@ -602,6 +638,7 @@ void UCombatComponent::ThrowGrenade()
 	if (Character)
 	{
 		Character->PlayThrowGrenadeMontage();
+		AttachActorToLeftHand(EquippedWeapon);
 		if (!Character->HasAuthority())
 		{
 			ServerThrowGrenade();
