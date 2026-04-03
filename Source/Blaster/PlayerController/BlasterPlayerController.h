@@ -32,6 +32,7 @@ public:
 	void SetHUDMatchCountdown(const float CountdownTime); // If only 30 seconds left, display some text animation and set text color to red.
 	void SetHUDAnnouncementCountdown(float CountdownTime); // Same as SetHUDMatchCountdown, but with a different TextBlock. TODO: checks and calculations could be refactorized into a separate function to make cleaner code.
 	void SetHUDSniperScope(const bool bIsAiming);
+	void SetHUDGrenades(const int32 Grenades);
 	
 	void OnMatchStateSet(const FName& State);
 

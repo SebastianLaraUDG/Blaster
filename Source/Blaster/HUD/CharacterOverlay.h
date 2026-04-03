@@ -40,6 +40,9 @@ public:
 	TObjectPtr<UTextBlock> EquippedWeaponName;
 	
 	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UTextBlock> GrenadesText;
+	
+	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UTextBlock> MatchCountDownText;
 	
 	// E.g. blinking animation.

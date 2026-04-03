@@ -35,6 +35,7 @@ void UHealthComponent::BeginPlay()
 void UHealthComponent::ReceiveDamage(AActor* DamagedActor, float Damage, const UDamageType* DamageType,
 	AController* InstigatedBy, AActor* DamageCauser)
 {
+	if (IsDead()) return;
 	const float OldHealth = CurrentHealth;
 	CurrentHealth = FMath::Clamp(CurrentHealth - Damage, 0.f, MaxHealth);
 	LastInstigatorController = InstigatedBy;

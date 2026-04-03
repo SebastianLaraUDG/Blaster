@@ -12,6 +12,8 @@
 #include "Kismet/GameplayStatics.h"
 #include "Net/UnrealNetwork.h"
 #include "Sound/SoundCue.h"
+#include "Blaster/Weapon/ProjectileGrenade.h"
+#include "Components/BoxComponent.h"
 
 UCombatComponent::UCombatComponent()
 {
@@ -33,6 +35,8 @@ void UCombatComponent::GetLifetimeReplicatedProps(TArray<class FLifetimeProperty
 	DOREPLIFETIME_CONDITION(UCombatComponent, CarriedAmmo, COND_OwnerOnly);
 	// Combat state.
 	DOREPLIFETIME(UCombatComponent, CombatState);
+	// Grenades.
+	DOREPLIFETIME_CONDITION(UCombatComponent, Grenades, COND_OwnerOnly); // Lecture replicates without condition, but I do not think it is necessary to replicate to other clients.
 }
 
 void UCombatComponent::BeginPlay()
@@ -52,6 +56,10 @@ void UCombatComponent::BeginPlay()
 		if (Character->HasAuthority())
 		{
 			InitializeCarriedAmmo();
+		}
+		if (Character->IsLocallyControlled())
+		{
+			UpdateHUDGrenades();
 		}
 	}
 }
@@ -135,12 +143,15 @@ void UCombatComponent::OnRep_EquippedWeapon()
 
 void UCombatComponent::ServerThrowGrenade_Implementation()
 {
+	if (Grenades < 1) return;
 	CombatState = ECombatState::ECS_ThrowingGrenade;
 	if (Character)
 	{
 		Character->PlayThrowGrenadeMontage();
 		AttachActorToLeftHand(EquippedWeapon);
+		ShowAttachedGrenade(true);
 	}
+	Grenades = FMath::Clamp(Grenades - 1, 0, MaxGrenades);
 }
 
 void UCombatComponent::FireButtonPressed(bool bPressed)
@@ -453,6 +464,14 @@ void UCombatComponent::ReloadEmptyWeapon()
 	}
 }
 
+void UCombatComponent::ShowAttachedGrenade(const bool bShowGrenade) const
+{
+	if (Character && Character->GetGrenadeMesh())
+	{
+		Character->GetGrenadeMesh()->SetVisibility(bShowGrenade);
+	}
+}
+
 bool UCombatComponent::CanFire() const
 {
 	if (!EquippedWeapon) return false;
@@ -467,8 +486,7 @@ bool UCombatComponent::CanFire() const
 void UCombatComponent::Reload()
 {
 	// We can reload only if we have enough ammo, we have fired at least one projectile of the current magazine, and we are unoccupied.
-	if (CarriedAmmo > 0 && EquippedWeapon->GetAmmo() < EquippedWeapon->GetMagCapacity() && CombatState ==
-		ECombatState::ECS_Unoccupied)
+	if (CarriedAmmo > 0 && EquippedWeapon && !EquippedWeapon->IsFull() && CombatState == ECombatState::ECS_Unoccupied)
 	{
 		ServerReload();
 	}
@@ -514,6 +532,7 @@ void UCombatComponent::OnRep_CombatState()
 		{
 			Character->PlayThrowGrenadeMontage();
 			AttachActorToLeftHand(EquippedWeapon);
+			ShowAttachedGrenade(true); // During Throw grenade animation, mesh should be visible.
 		}
 		break;
 	}
@@ -564,6 +583,22 @@ void UCombatComponent::UpdateShotgunAmmoValues()
 	}
 }
 
+void UCombatComponent::OnRep_Grenades()
+{
+	if (Character && Character->IsLocallyControlled())
+	{
+		UpdateHUDGrenades();
+	}
+}
+
+void UCombatComponent::UpdateHUDGrenades()
+{
+	if (Controller = Controller ? Controller.Get() : Cast<ABlasterPlayerController>(Character->Controller); Controller)
+	{
+		Controller->SetHUDGrenades(Grenades);
+	}
+}
+
 void UCombatComponent::JumpToShotgunEnd()
 {
 	if (!Character || !Character->GetMesh()) return;
@@ -579,6 +614,18 @@ void UCombatComponent::ThrowGrenadeFinished()
 {
 	CombatState = ECombatState::ECS_Unoccupied;
 	AttachActorToRightHand(EquippedWeapon);
+}
+
+void UCombatComponent::LaunchGrenade()
+{
+	// Hide mesh.
+	ShowAttachedGrenade(false);
+	if (Character && Character->IsLocallyControlled())
+	{
+		ServerLaunchGrenade(HitTarget);
+		
+		UpdateHUDGrenades();
+	}
 }
 
 void UCombatComponent::ShotgunShellReload()
@@ -632,7 +679,8 @@ void UCombatComponent::InitializeCarriedAmmo()
 
 void UCombatComponent::ThrowGrenade()
 {
-	if (CombatState != ECombatState::ECS_Unoccupied) return;
+	if (Grenades == 0) return;
+	if (CombatState != ECombatState::ECS_Unoccupied || !EquippedWeapon) return;
 	
 	CombatState = ECombatState::ECS_ThrowingGrenade;
 	if (Character)
@@ -642,6 +690,32 @@ void UCombatComponent::ThrowGrenade()
 		if (!Character->HasAuthority())
 		{
 			ServerThrowGrenade();
+		}
+		else
+		{
+			Grenades = FMath::Clamp(Grenades - 1 , 0, MaxGrenades);
+		}
+	}
+}
+
+void UCombatComponent::ServerLaunchGrenade_Implementation(const FVector_NetQuantize& Target)
+{
+	// Spawn actual grenade.
+	if (Character && Character->GetGrenadeMesh() && GrenadeClass)
+	{
+		const FVector StartingLocation = Character->GetGrenadeMesh()->GetComponentLocation();
+		const FVector ToTarget = Target -  StartingLocation;
+		FActorSpawnParameters SpawnParams;
+		SpawnParams.Instigator = Character;
+		SpawnParams.Owner = Character;
+		if (const auto World = GetWorld())
+		{
+			const auto Grenade = World->SpawnActor<AProjectile>(GrenadeClass, StartingLocation, ToTarget.Rotation(), SpawnParams);
+			if (const auto GrenadeCollider = Grenade->GetComponentByClass<UBoxComponent>())
+			{
+				GrenadeCollider->IgnoreActorWhenMoving(Character, true); // This is already set in AProjectile::BeginPlay but for some reason it was not working for BP_ThrowGrenade.
+			}
+			
 		}
 	}
 }

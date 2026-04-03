@@ -14,6 +14,7 @@ class ABlasterHUD;
 class ABlasterPlayerController;
 class AWeapon;
 class ABlasterCharacter;
+class AProjectileGrenade;
 
 /*
  * Combat component. Responsible for all combat functionality.
@@ -45,8 +46,13 @@ public:
 	// Jump to the shotgun end anim montage section. Explicit jump section is "ShotgunEnd" (hardcoded).
 	void JumpToShotgunEnd();
 	
+	// This takes care of changing combat state and attaches the equipped weapon to right hand.
 	UFUNCTION(BlueprintCallable)
 	void ThrowGrenadeFinished();
+	
+	// Hides the grenade mesh and TODO: spawn actual grenade object.
+	UFUNCTION(BlueprintCallable)
+	void LaunchGrenade();
 	
 	// Designed to be called from anim notifies.
 	UFUNCTION(BlueprintCallable)
@@ -94,12 +100,19 @@ protected:
 	UFUNCTION(Server, Reliable)
 	void ServerThrowGrenade();
 	
+	UFUNCTION(Server, Reliable)
+	void ServerLaunchGrenade(const FVector_NetQuantize& Target);
+	
+	UPROPERTY(EditAnywhere)
+	TSubclassOf<AProjectileGrenade> GrenadeClass;
+	
 	void DropEquippedWeapon();
 	void AttachActorToRightHand(const AActor* ActorToAttach) const;
 	void AttachActorToLeftHand(const AActor* ActorToAttach) const;
 	void UpdateCarriedAmmo();
 	void PlayEquipWeaponSound() const;
 	void ReloadEmptyWeapon();
+	void ShowAttachedGrenade(const bool bShowGrenade) const;
 	
 private:
 //	UPROPERTY()
@@ -245,4 +258,15 @@ private:
 	
 	void UpdateAmmoValues();
 	void UpdateShotgunAmmoValues();
+	
+	UPROPERTY(ReplicatedUsing = OnRep_Grenades, VisibleAnywhere)
+	int32 Grenades = 4;
+	
+	UFUNCTION()
+	void OnRep_Grenades();
+	
+	UPROPERTY(EditDefaultsOnly, meta = (ClampMin = 0))
+	int32 MaxGrenades = 12;
+	
+	void UpdateHUDGrenades();
 };

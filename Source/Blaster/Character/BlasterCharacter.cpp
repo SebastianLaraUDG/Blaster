@@ -72,6 +72,11 @@ ABlasterCharacter::ABlasterCharacter()
 
 	// Dissolve Timeline component.
 	DissolveTimeline = CreateDefaultSubobject<UTimelineComponent>(TEXT("DissolveTimeline Component"));
+	
+	// Grenade mesh.
+	GrenadeMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("GrenadeMesh"));
+	GrenadeMesh->SetupAttachment(GetMesh(), FName("GrenadeSocket"));
+	GrenadeMesh->SetCollisionEnabled(ECollisionEnabled::Type::NoCollision);
 }
 
 void ABlasterCharacter::Tick(float DeltaTime)
@@ -234,8 +239,9 @@ void ABlasterCharacter::PlayMontage(UAnimMontage* const Montage) const
 void ABlasterCharacter::PlayHitReactMontage() const
 {
 	if (!CombatComponent || !IsWeaponEquipped()) return;
-	if (CombatComponent->CombatState == ECombatState::ECS_Reloading) return; // There is the case where the character received damage while reloading (found this while receiving damage from a grenade explosion)
+	if (CombatComponent->CombatState != ECombatState::ECS_Unoccupied)/*if (CombatComponent->CombatState == ECombatState::ECS_Reloading)*/ return; // There is the case where the character received damage while reloading (found this while receiving damage from a grenade explosion)
 																			// so it started playing Hit react montage therefore aborting the reload montage so character would never be able to shoot or reload ever again.
+																			// This happened again with the throw grenade animation.
 	
 	if (const auto AnimInstance = GetMesh()->GetAnimInstance(); AnimInstance && HitReactMontage)
 	{
@@ -282,6 +288,10 @@ void ABlasterCharacter::BeginPlay()
 	if (HealthComponent)
 	{
 		HealthComponent->OnHealthChanged.AddUObject(this, &ABlasterCharacter::OnHealthChanged);
+	}
+	if (GrenadeMesh) // Hide attached grenade mesh.
+	{
+		GrenadeMesh->SetVisibility(false);
 	}
 	// Initialize HUD health values.
 	UpdateHUD();
@@ -385,6 +395,7 @@ void ABlasterCharacter::ReloadButtonPressed()
 
 void ABlasterCharacter::ThrowGrenadeButtonPressed()
 {
+	if (bDisableGameplay) return;
 	if (CombatComponent)
 	{
 		CombatComponent->ThrowGrenade();

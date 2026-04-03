@@ -157,6 +157,8 @@ void ABlasterPlayerController::SetHUDEquippedWeaponName(const EWeaponType Weapon
 			break;
 		case EWeaponType::EWT_SubmachineGun: EquippedWeaponName = FText::FromString(TEXT("SMG"));
 			break;
+		case EWeaponType::EWT_GrenadeLauncher: EquippedWeaponName = FText::FromString(TEXT("Grenade Launcher"));
+			break;
 		// Empty text.
 		case EWeaponType::EWT_MAX: EquippedWeaponName = FText::FromString(TEXT(""));
 			break;
@@ -240,6 +242,18 @@ void ABlasterPlayerController::SetHUDSniperScope(const bool bIsAiming)
 	{
 		BlasterHUD->SniperScope->PlayAnimation(BlasterHUD->SniperScope->ScopeZoomIn, 0.f, 1,
 		                                       EUMGSequencePlayMode::Reverse);
+	}
+}
+
+void ABlasterPlayerController::SetHUDGrenades(const int32 Grenades)
+{
+	BlasterHUD = BlasterHUD ? BlasterHUD.Get() : Cast<ABlasterHUD>(GetHUD());
+	const bool bHUDValid = BlasterHUD && BlasterHUD->CharacterOverlay && BlasterHUD->CharacterOverlay->GrenadesText;
+	
+	if (bHUDValid)
+	{
+		const FString GrenadesText = FString::Printf(TEXT("%d"), Grenades);
+		BlasterHUD->CharacterOverlay->GrenadesText->SetText(FText::FromString(GrenadesText));
 	}
 }
 

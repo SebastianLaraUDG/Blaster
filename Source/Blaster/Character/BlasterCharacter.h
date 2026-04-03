@@ -233,6 +233,14 @@ private:
 	
 	UPROPERTY(EditAnywhere, Category = Elimination)
 	TObjectPtr<USoundCue> ElimBotSound;
+	
+	/*
+	 * Grenade
+	 */
+	
+	// Hardcoded "GrenadeSocket.
+	UPROPERTY(VisibleAnywhere)
+	TObjectPtr<UStaticMeshComponent> GrenadeMesh;
 
 public:
 	/* Input Temporal aqui. No se si ponerlo en el controller.*/
@@ -292,4 +300,5 @@ public:
 	FORCEINLINE UCombatComponent* GetCombatComponent() const { return CombatComponent; }
 	FORCEINLINE bool GetDisableGameplay() const { return bDisableGameplay; }
 	FORCEINLINE UAnimMontage* GetReloadMontage() const {return ReloadMontage;}
+	FORCEINLINE UStaticMeshComponent* GetGrenadeMesh() const { return GrenadeMesh; }
 };
