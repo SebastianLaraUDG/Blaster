@@ -205,7 +205,7 @@ private:
 	UPROPERTY(EditAnywhere, Category = Combat)
 	float ZoomInterpSpeed = 20.f;
 	
-	void InterpFOV(const float& DeltaTime);
+	void InterpFOV(const float DeltaTime);
 	
 	/* 
 	 * Automatic fire

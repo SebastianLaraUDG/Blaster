@@ -353,13 +353,20 @@ void UCombatComponent::SetHUDCrosshairs(float DeltaTime)
 	HUD->SetHudPackage(HUDPackage);
 }
 
-void UCombatComponent::InterpFOV(const float& DeltaTime)
+void UCombatComponent::InterpFOV(const float DeltaTime)
 {
 	/*
 	 * NOTE: to avoid the blur effect when aiming at large or very short distances
 	 * you must set the Camera's Depth of Field: Focal Distance and the Aperture (F-stop) 
 	 * attributes to large values.
 	 */
+	
+	/*
+		 * 32 and 10000 are the limit values the inspector allows for these settings.
+		 * Hardcoded. Change as you think it is more convenient.
+		 These settings patch are due to a multiplayer (only build) issue where the screen turned all blurry
+		 when zooming in.
+	*/
 	if (!EquippedWeapon) return;
 	if (!Character || !Character->GetCamera()) return;
 
@@ -368,12 +375,24 @@ void UCombatComponent::InterpFOV(const float& DeltaTime)
 	{
 		CurrentFOV = FMath::FInterpTo(CurrentFOV, EquippedWeapon->ZoomedFOV, DeltaTime,
 		                              EquippedWeapon->ZoomInterpSpeed);
+
+
+		Character->GetCamera()->PostProcessSettings.bOverride_DepthOfFieldFstop = true;
+		Character->GetCamera()->PostProcessSettings.DepthOfFieldFstop = 32.f;
+		Character->GetCamera()->PostProcessSettings.bOverride_DepthOfFieldFocalDistance = true;
+		Character->GetCamera()->PostProcessSettings.DepthOfFieldFocalDistance = 10000.f;
 	}
 	// Stopped aiming. Go back to default zoom.
 	else
 	{
 		CurrentFOV = FMath::FInterpTo(CurrentFOV, DefaultFOV, DeltaTime, ZoomInterpSpeed);
+		
+		Character->GetCamera()->PostProcessSettings.bOverride_DepthOfFieldFstop = false;
+		// Character->GetCamera()->PostProcessSettings.DepthOfFieldFstop = 4.f; // Reset to default values
+		Character->GetCamera()->PostProcessSettings.bOverride_DepthOfFieldFocalDistance = false;
+		// Character->GetCamera()->PostProcessSettings.DepthOfFieldFocalDistance = 0.f; // Reset to default values
 	}
+	
 	Character->GetCamera()->SetFieldOfView(CurrentFOV);
 }
 
