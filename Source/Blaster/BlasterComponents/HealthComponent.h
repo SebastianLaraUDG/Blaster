@@ -41,8 +41,8 @@ private:
 	 * Player health.
 	 */
 	
-	UPROPERTY(ReplicatedUsing = OnRep_Health, VisibleAnywhere, Category = Health)
-	float CurrentHealth = 89.5f;	// TODO: initialize at a low value. It's 89 just for testing HUD.
+	UPROPERTY(ReplicatedUsing = OnRep_Health, EditDefaultsOnly, Category = Health, meta = (ClampMin = 0.1f))
+	float CurrentHealth = 100.f;
 	
 	UPROPERTY(EditAnywhere, Category = Health, meta = (ClampMin = 0.00001))
 	float MaxHealth = 100.f;
