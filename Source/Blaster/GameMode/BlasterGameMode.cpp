@@ -72,7 +72,7 @@ void ABlasterGameMode::HandleMatchHasStarted()
 void ABlasterGameMode::OnMatchStateSet()
 {
 	Super::OnMatchStateSet();
-
+	
 	// Add overlay to all player controllers.
 	for (auto It = GetWorld()->GetPlayerControllerIterator(); It; ++It)
 	{
@@ -92,7 +92,7 @@ void ABlasterGameMode::OnMatchStateSet()
 		{
 			// Clear all the timers of this object to avoid issues.
 			GetWorldTimerManager().ClearAllTimersForObject(this);
-			UE_LOG(LogTemp,Error,TEXT("RESTARTING GAME in %f"), CooldownTime)
+			UE_LOG(LogStats, Display, TEXT("RESTARTING GAME in %f"), CooldownTime)
 			// Restart game.
 			RestartGame();
 		});
