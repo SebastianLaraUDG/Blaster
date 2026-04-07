@@ -71,7 +71,7 @@ protected:
 	UFUNCTION(Server, Reliable)
 	void ServerCheckMatchState();
 	
-	UFUNCTION(Client,Reliable)
+	UFUNCTION(Client, Reliable)
 	void ClientJoinMidGame(const FName& StateOfMatch, const float Warmup, const float Match, const float Cooldown, const float StartingTime);
 	
 	/* Different options to display: No winner, You are the winner, Sole winner, Top winners of the match. */
@@ -81,7 +81,7 @@ private:
 	
 	TObjectPtr<ABlasterHUD> BlasterHUD;
 	
-	float LevelStartingTime = 0.f; // TODO: remove
+	float LevelStartingTime = 0.f;
 	float MatchTime = 0.f;
 	float WarmupTime = 0.f;
 	float CooldownTime = 0.f;

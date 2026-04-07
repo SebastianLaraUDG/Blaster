@@ -264,16 +264,16 @@ void ABlasterPlayerController::SetHUDTime()
 	// 1. Calculate the remaining real time based on current match state.
 	if (MatchState == MatchState::WaitingToStart)
 	{
-		TimeLeft = WarmupTime - GetServerTime();
+		TimeLeft = WarmupTime - (GetServerTime() - LevelStartingTime);
 	}
 	else if (MatchState == MatchState::InProgress)
 	{
-		TimeLeft = WarmupTime + MatchTime - GetServerTime();
+		TimeLeft = WarmupTime + MatchTime - (GetServerTime() - LevelStartingTime);
 	}
 	else if (MatchState == MatchState::Cooldown)
 	{
 		// The total amount of time until the end of the Cooldown.
-		TimeLeft = CooldownTime + WarmupTime + MatchTime - GetServerTime();
+		TimeLeft = CooldownTime + WarmupTime + MatchTime - (GetServerTime() - LevelStartingTime);
 	}
 
 	const uint32 SecondsLeft = FMath::CeilToInt(TimeLeft);
