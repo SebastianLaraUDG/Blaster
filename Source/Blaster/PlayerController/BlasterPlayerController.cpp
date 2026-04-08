@@ -19,18 +19,13 @@
 #include "Kismet/GameplayStatics.h"
 #include "Net/UnrealNetwork.h"
 
-/** 
- * TODO: This script uses the same code many times with minor changes, so
- * maybe I could refactor it to use functions and that way make it more readable.
- */
-
 
 
 void ABlasterPlayerController::BeginPlay()
 {
 	Super::BeginPlay();
-
-	BlasterHUD = Cast<ABlasterHUD>(GetHUD());
+	
+	EnsureBlasterHUD();
 
 	ServerCheckMatchState();
 
@@ -40,17 +35,55 @@ void ABlasterPlayerController::BeginPlay()
 	// TODO: stop timer when game ends.
 }
 
+void ABlasterPlayerController::OnPossess(APawn* InPawn)
+{
+	Super::OnPossess(InPawn);
+	/*
+	Update HUD on possess. This is because when the character respawned HUD (health bar) was not
+	being initialized correctly.
+	*/
+	if (const auto BlasterCharacter = Cast<ABlasterCharacter>(InPawn))
+	{
+		BlasterCharacter->UpdateHUD();
+	}
+}
+
+void ABlasterPlayerController::ReceivedPlayer()
+{
+	Super::ReceivedPlayer();
+	if (IsLocalController())
+	{
+		ServerRequestServerTime(GetWorld()->GetTimeSeconds());
+		/*
+		 // Add sniper in next tick due to its dependency with the player controller (it cannot be created yet in begin play).
+		const auto AddSniperScopeCallback = FTimerDelegate::CreateLambda([this]
+			{
+				// Add sniper scope and hide it.
+				BlasterHUD = BlasterHUD ? BlasterHUD.Get() : Cast<ABlasterHUD>(GetHUD());
+				BlasterHUD->AddSniperScope();
+			if (BlasterHUD->SniperScope)
+				BlasterHUD->SniperScope->SetVisibility(ESlateVisibility::Hidden);
+			}
+		);
+		//GetWorldTimerManager().SetTimerForNextTick(AddSniperScopeCallback);
+		FTimerHandle TimerHandle;
+		GetWorldTimerManager().SetTimer(TimerHandle, AddSniperScopeCallback, 5.f, false);
+		*/
+	}
+}
+
+void ABlasterPlayerController::GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+	DOREPLIFETIME(ThisClass, MatchState)
+}
 
 void ABlasterPlayerController::SetHUDHealth(float Health, float MaxHealth)
 {
-	if (!BlasterHUD)
-	{
-		BlasterHUD = Cast<ABlasterHUD>(GetHUD());
-	}
-
-
-	const bool bHUDValid = BlasterHUD &&
-		BlasterHUD->CharacterOverlay &&
+	EnsureBlasterHUD();
+	
+	const bool bHUDValid = HUDAndOverlayAreValid() &&
 		BlasterHUD->CharacterOverlay->HealthBar &&
 		BlasterHUD->CharacterOverlay->HealthText;
 
@@ -68,14 +101,9 @@ void ABlasterPlayerController::SetHUDHealth(float Health, float MaxHealth)
 
 void ABlasterPlayerController::SetHUDScore(const float Score)
 {
-	if (!BlasterHUD)
-	{
-		BlasterHUD = Cast<ABlasterHUD>(GetHUD());
-	}
-	const bool bHUDValid = BlasterHUD &&
-		BlasterHUD->CharacterOverlay &&
-		BlasterHUD->CharacterOverlay->ScoreAmount;
-	if (bHUDValid)
+	EnsureBlasterHUD();
+	
+	if (HUDAndOverlayAreValid() && BlasterHUD->CharacterOverlay->ScoreAmount)
 	{
 		const FString ScoreText = FString::Printf(TEXT("%d"), FMath::FloorToInt(Score));
 		BlasterHUD->CharacterOverlay->ScoreAmount->SetText(FText::FromString(ScoreText));
@@ -84,14 +112,9 @@ void ABlasterPlayerController::SetHUDScore(const float Score)
 
 void ABlasterPlayerController::SetHUDDefeats(const int32 Defeats)
 {
-	if (!BlasterHUD)
-	{
-		BlasterHUD = Cast<ABlasterHUD>(GetHUD());
-	}
-	const bool bHUDValid = BlasterHUD &&
-		BlasterHUD->CharacterOverlay &&
-		BlasterHUD->CharacterOverlay->ScoreAmount;
-	if (bHUDValid)
+	EnsureBlasterHUD();	
+	
+	if (HUDAndOverlayAreValid() && BlasterHUD->CharacterOverlay->ScoreAmount)
 	{
 		const FString DefeatsText = FString::Printf(TEXT("%d"), Defeats);
 		BlasterHUD->CharacterOverlay->DefeatsAmount->SetText(FText::FromString(DefeatsText));
@@ -100,14 +123,9 @@ void ABlasterPlayerController::SetHUDDefeats(const int32 Defeats)
 
 void ABlasterPlayerController::SetHUDWeaponAmmo(const int32 Ammo)
 {
-	if (!BlasterHUD)
-	{
-		BlasterHUD = Cast<ABlasterHUD>(GetHUD());
-	}
-	const bool bHUDValid = BlasterHUD &&
-		BlasterHUD->CharacterOverlay &&
-		BlasterHUD->CharacterOverlay->WeaponAmmoAmount;
-	if (bHUDValid)
+	EnsureBlasterHUD();
+	
+	if (HUDAndOverlayAreValid() && BlasterHUD->CharacterOverlay->WeaponAmmoAmount)
 	{
 		const FString AmmoText = FString::Printf(TEXT("%d"), Ammo);
 		BlasterHUD->CharacterOverlay->WeaponAmmoAmount->SetText(FText::FromString(AmmoText));
@@ -116,14 +134,9 @@ void ABlasterPlayerController::SetHUDWeaponAmmo(const int32 Ammo)
 
 void ABlasterPlayerController::SetHUDWeaponCarriedAmmo(const int32 CarriedAmmo)
 {
-	if (!BlasterHUD)
-	{
-		BlasterHUD = Cast<ABlasterHUD>(GetHUD());
-	}
-	const bool bHUDValid = BlasterHUD &&
-		BlasterHUD->CharacterOverlay &&
-		BlasterHUD->CharacterOverlay->CarriedAmmoAmount;
-	if (bHUDValid)
+	EnsureBlasterHUD();
+	
+	if (HUDAndOverlayAreValid() && BlasterHUD->CharacterOverlay->CarriedAmmoAmount)
 	{
 		const FString CarriedAmmoText = FString::Printf(TEXT("%d"), CarriedAmmo);
 		BlasterHUD->CharacterOverlay->CarriedAmmoAmount->SetText(FText::FromString(CarriedAmmoText));
@@ -132,15 +145,9 @@ void ABlasterPlayerController::SetHUDWeaponCarriedAmmo(const int32 CarriedAmmo)
 
 void ABlasterPlayerController::SetHUDEquippedWeaponName(const EWeaponType WeaponType)
 {
-	if (!BlasterHUD)
-	{
-		BlasterHUD = Cast<ABlasterHUD>(GetHUD());
-	}
-	const bool bHUDValid = BlasterHUD &&
-		BlasterHUD->CharacterOverlay &&
-		BlasterHUD->CharacterOverlay->EquippedWeaponName;
-
-	if (bHUDValid)
+	EnsureBlasterHUD();
+	
+	if (HUDAndOverlayAreValid() && BlasterHUD->CharacterOverlay->EquippedWeaponName)
 	{
 		FText EquippedWeaponName;
 		switch (WeaponType)
@@ -169,14 +176,11 @@ void ABlasterPlayerController::SetHUDEquippedWeaponName(const EWeaponType Weapon
 
 void ABlasterPlayerController::SetHUDMatchCountdown(const float CountdownTime)
 {
-	BlasterHUD = BlasterHUD ? BlasterHUD.Get() : Cast<ABlasterHUD>(GetHUD());
-
-	const bool bHUDValid = BlasterHUD &&
-		BlasterHUD->CharacterOverlay &&
-		BlasterHUD->CharacterOverlay->MatchCountDownText;
-	if (bHUDValid)
+	EnsureBlasterHUD();
+	
+	if (HUDAndOverlayAreValid() && BlasterHUD->CharacterOverlay->MatchCountDownText)
 	{
-		if (CountdownTime < 0.f) // Avoid displaying negative time.
+		if (CountdownTime < 0.f) // Prevent displaying negative time.
 		{
 			BlasterHUD->CharacterOverlay->MatchCountDownText->SetText(FText());
 			return;
@@ -200,7 +204,8 @@ void ABlasterPlayerController::SetHUDMatchCountdown(const float CountdownTime)
 
 void ABlasterPlayerController::SetHUDAnnouncementCountdown(const float CountdownTime)
 {
-	BlasterHUD = BlasterHUD ? BlasterHUD.Get() : Cast<ABlasterHUD>(GetHUD());
+	EnsureBlasterHUD();
+	
 	const bool bHUDValid = BlasterHUD && BlasterHUD->Announcement && BlasterHUD->Announcement->WarmupTime;
 	if (bHUDValid)
 	{
@@ -219,7 +224,8 @@ void ABlasterPlayerController::SetHUDAnnouncementCountdown(const float Countdown
 
 void ABlasterPlayerController::SetHUDSniperScope(const bool bIsAiming)
 {
-	BlasterHUD = BlasterHUD ? BlasterHUD.Get() : Cast<ABlasterHUD>(GetHUD());
+	EnsureBlasterHUD();
+	
 	if (!BlasterHUD->SniperScope)
 	{
 		BlasterHUD->AddSniperScope();
@@ -247,10 +253,9 @@ void ABlasterPlayerController::SetHUDSniperScope(const bool bIsAiming)
 
 void ABlasterPlayerController::SetHUDGrenades(const int32 Grenades)
 {
-	BlasterHUD = BlasterHUD ? BlasterHUD.Get() : Cast<ABlasterHUD>(GetHUD());
-	const bool bHUDValid = BlasterHUD && BlasterHUD->CharacterOverlay && BlasterHUD->CharacterOverlay->GrenadesText;
+	EnsureBlasterHUD();
 	
-	if (bHUDValid)
+	if (HUDAndOverlayAreValid() && BlasterHUD->CharacterOverlay->GrenadesText)
 	{
 		const FString GrenadesText = FString::Printf(TEXT("%d"), Grenades);
 		BlasterHUD->CharacterOverlay->GrenadesText->SetText(FText::FromString(GrenadesText));
@@ -330,26 +335,6 @@ float ABlasterPlayerController::GetServerTime() const
 
 // ~End Time Sync interface.
 
-void ABlasterPlayerController::OnPossess(APawn* InPawn)
-{
-	Super::OnPossess(InPawn);
-	/*
-	Update HUD on possess. This is because when the character respawned HUD (health bar) was not
-	being initialized correctly.
-	*/
-	if (const auto BlasterCharacter = Cast<ABlasterCharacter>(InPawn))
-	{
-		BlasterCharacter->UpdateHUD();
-	}
-}
-
-void ABlasterPlayerController::GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const
-{
-	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
-
-	DOREPLIFETIME(ThisClass, MatchState)
-}
-
 void ABlasterPlayerController::ServerCheckMatchState_Implementation()
 {
 	// Get all time values from the server and get ready for announcement and match widgets.
@@ -377,30 +362,6 @@ void ABlasterPlayerController::ClientJoinMidGame_Implementation(const FName& Sta
 	if (BlasterHUD && MatchState == MatchState::WaitingToStart)
 	{
 		BlasterHUD->AddAnnouncement();
-	}
-}
-
-void ABlasterPlayerController::ReceivedPlayer()
-{
-	Super::ReceivedPlayer();
-	if (IsLocalController())
-	{
-		ServerRequestServerTime(GetWorld()->GetTimeSeconds());
-		/*
-		 // Add sniper in next tick due to its dependency with the player controller (it cannot be created yet in begin play).
-		const auto AddSniperScopeCallback = FTimerDelegate::CreateLambda([this]
-			{
-				// Add sniper scope and hide it.
-				BlasterHUD = BlasterHUD ? BlasterHUD.Get() : Cast<ABlasterHUD>(GetHUD());
-				BlasterHUD->AddSniperScope();
-			if (BlasterHUD->SniperScope)
-				BlasterHUD->SniperScope->SetVisibility(ESlateVisibility::Hidden);
-			}
-		);
-		//GetWorldTimerManager().SetTimerForNextTick(AddSniperScopeCallback);
-		FTimerHandle TimerHandle;
-		GetWorldTimerManager().SetTimer(TimerHandle, AddSniperScopeCallback, 5.f, false);
-		*/
 	}
 }
 
@@ -437,7 +398,7 @@ void ABlasterPlayerController::OnRep_MatchState()
 /** When match starts add character overlay and hide announcement text.*/
 void ABlasterPlayerController::HandleMatchHasStarted()
 {
-	if (BlasterHUD = BlasterHUD ? BlasterHUD.Get() : Cast<ABlasterHUD>(BlasterHUD); BlasterHUD)
+	if (EnsureBlasterHUD())
 	{
 		BlasterHUD->AddCharacterOverlay();
 		// Hide announcement text. 
@@ -450,7 +411,7 @@ void ABlasterPlayerController::HandleMatchHasStarted()
 
 void ABlasterPlayerController::HandleCooldown()
 {
-	if (BlasterHUD = BlasterHUD ? BlasterHUD.Get() : Cast<ABlasterHUD>(BlasterHUD); BlasterHUD)
+	if (EnsureBlasterHUD())
 	{
 		BlasterHUD->CharacterOverlay->RemoveFromParent(); // Remove overlay responsible for health, ammo, etc.
 
@@ -514,4 +475,9 @@ void ABlasterPlayerController::DisplayWinner() const
 
 		BlasterHUD->Announcement->InfoText->SetText(FText::FromString(InfoTextString));
 	}
+}
+
+ABlasterHUD* ABlasterPlayerController::EnsureBlasterHUD()
+{
+	return BlasterHUD = BlasterHUD ? BlasterHUD.Get() : Cast<ABlasterHUD>(GetHUD());
 }

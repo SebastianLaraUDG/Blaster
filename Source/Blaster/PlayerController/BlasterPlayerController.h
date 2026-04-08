@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "Blaster/HUD/BlasterHUD.h"
 #include "GameFramework/PlayerController.h"
 #include "Blaster/Weapon/WeaponTypes.h"
 #include "BlasterPlayerController.generated.h"
@@ -30,7 +31,7 @@ public:
 	void SetHUDWeaponCarriedAmmo(const int32 CarriedAmmo);
 	void SetHUDEquippedWeaponName(const EWeaponType WeaponType);
 	void SetHUDMatchCountdown(const float CountdownTime); // If only 30 seconds left, display some text animation and set text color to red.
-	void SetHUDAnnouncementCountdown(float CountdownTime); // Same as SetHUDMatchCountdown, but with a different TextBlock. TODO: checks and calculations could be refactorized into a separate function to make cleaner code.
+	void SetHUDAnnouncementCountdown(const float CountdownTime); // Same as SetHUDMatchCountdown, but with a different TextBlock. TODO: checks and calculations could be refactorized into a separate function to make cleaner code.
 	void SetHUDSniperScope(const bool bIsAiming);
 	void SetHUDGrenades(const int32 Grenades);
 	
@@ -101,4 +102,9 @@ private:
 	void HandleMatchHasStarted();
 	// Hide character overlay and show announcement text.
 	void HandleCooldown();
+	
+	// Avoid code duplication with these functions.
+	ABlasterHUD* EnsureBlasterHUD();
+	
+	bool HUDAndOverlayAreValid() const { return BlasterHUD && BlasterHUD->CharacterOverlay; }
 };
