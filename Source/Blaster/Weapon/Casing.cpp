@@ -15,6 +15,7 @@ ACasing::ACasing()
 	SetRootComponent(CasingMesh);
 	// Camera response.
 	CasingMesh->SetCollisionResponseToChannel(ECC_Camera, ECR_Ignore);
+	CasingMesh->SetCollisionResponseToChannel(ECC_Pawn, ECR_Ignore); // This solves an issue in which when shooting the characters were turning abruptly because they collided with the casings.
 	CasingMesh->SetSimulatePhysics(true);
 	CasingMesh->SetEnableGravity(true);
 	CasingMesh->SetNotifyRigidBodyCollision(true);
