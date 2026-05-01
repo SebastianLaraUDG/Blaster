@@ -12,6 +12,9 @@
 #include "Blaster/BlasterComponents/CombatComponent.h"
 #include "Blaster/PlayerController/BlasterPlayerController.h"
 #include "Engine/SkeletalMeshSocket.h"
+#include "Kismet/GameplayStatics.h"
+#include "Particles/ParticleSystem.h"
+#include "Sound/SoundCue.h"
 
 AWeapon::AWeapon()
 {
@@ -147,14 +150,30 @@ void AWeapon::ShowPickupWidget(bool bShowWidget)
 
 void AWeapon::Fire(const FVector& HitTarget)
 {
+	// Sounds and effects included in animations.
 	if (FireAnimation && WeaponMesh)
 	{
 		WeaponMesh->PlayAnimation(FireAnimation, false);
 	}
+	// If weapon does not have a firing animation, play sound and particles.
+	else if (!bImplementsFiringAnimations)
+	{
+		if (FiringParticle)
+		{
+			USkeletalMeshSocket const* MuzzleFlashSocket = WeaponMesh->GetSocketByName(MuzzleSocketName);
+			const FTransform SocketTransform = MuzzleFlashSocket->GetSocketTransform(WeaponMesh);
+			UGameplayStatics::SpawnEmitterAtLocation(this, FiringParticle, SocketTransform.GetLocation(), // In case of crash here, the socket was not found.
+			                                         SocketTransform.Rotator());
+		}
+		if (FiringCue)
+		{
+			UGameplayStatics::SpawnSoundAttached(FiringCue,WeaponMesh);
+		}
+	}
 	if (CasingClass)
 	{
 		USkeletalMeshSocket const* AmmoEjectSocket = WeaponMesh->GetSocketByName(FName("AmmoEject"));
-		const FTransform SocketTransform = AmmoEjectSocket->GetSocketTransform(WeaponMesh);
+		const FTransform SocketTransform = AmmoEjectSocket->GetSocketTransform(WeaponMesh); // In case of crash here, the socket was not found.
 		if (UWorld* World = GetWorld())
 		{
 			World->SpawnActor<ACasing>

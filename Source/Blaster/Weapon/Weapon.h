@@ -7,6 +7,7 @@
 #include "GameFramework/Actor.h"
 #include "Weapon.generated.h"
 
+class UParticleSystem;
 class ABlasterPlayerController;
 class ABlasterCharacter;
 class ACasing;
@@ -31,6 +32,9 @@ enum class EWeaponState : uint8
  * Custom depth is enabled by default.
  * If you do not see the custom depth effect, go to Project Settings, Engine - Rendering
  * Custom Depth-Stencil Pass and select Enabled with Stencil.
+ * 
+ * Known errors:
+ * If you set up a weapon and set bImplementsFiringAnimations to false, but assign a firing animation asset, the weapon will rotate a bit when firing (only one rotation), just remove the animation asset and it should not happen again.
  */
 UCLASS(Abstract, Blueprintable)
 class BLASTER_API AWeapon : public AActor
@@ -141,6 +145,17 @@ private:
 	
 	UPROPERTY(EditDefaultsOnly)
 	TSubclassOf<ACasing> CasingClass;
+	
+	/* Implements Firing animations. If it is set to false then fire SFX will be caused by code instead by animation and anim notifies. */
+	UPROPERTY(EditDefaultsOnly, meta = (AllowPrivateAccess = true))
+	bool bImplementsFiringAnimations = true;
+	
+	// This project uses legacy particle assets, if you need niagara you can replace this.
+	UPROPERTY(EditDefaultsOnly)
+	TObjectPtr<UParticleSystem> FiringParticle;
+	
+	UPROPERTY(EditDefaultsOnly)
+	TObjectPtr<USoundCue> FiringCue;
 	
 	/* Ammo. */
 	
