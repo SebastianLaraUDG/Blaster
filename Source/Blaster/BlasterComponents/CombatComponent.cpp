@@ -14,6 +14,7 @@
 #include "Sound/SoundCue.h"
 #include "Blaster/Weapon/ProjectileGrenade.h"
 #include "Components/BoxComponent.h"
+#include "Blaster/Utils/DebugHelpers.h"
 
 UCombatComponent::UCombatComponent()
 {
@@ -248,7 +249,7 @@ void UCombatComponent::TraceUnderCrosshairs(FHitResult& TraceHitResult)
 		{
 			const float DistanceToCharacter = (Character->GetActorLocation() - Start).Size();
 			Start += CrosshairWorldDirection * (DistanceToCharacter + StartOfTraceOffset);
-			DrawDebugSphere(GetWorld(), Start, 12.f, 12, FColor::Blue, false);
+			DRAW_DEBUG_SPHERE(GetWorld(), Start, 12.f, 12, FColor::Blue, false);
 		}
 
 		const FVector End = CrosshairWorldPosition + CrosshairWorldDirection * TraceLength;
@@ -272,7 +273,7 @@ void UCombatComponent::TraceUnderCrosshairs(FHitResult& TraceHitResult)
 			TraceHitResult.ImpactPoint = End;
 		}
 
-		DrawDebugSphere(GetWorld(), TraceHitResult.ImpactPoint, 12.f, 12, FColor::Red, false);
+		DRAW_DEBUG_SPHERE(GetWorld(), TraceHitResult.ImpactPoint, 12.f, 12, FColor::Red, false);
 	}
 }
 
