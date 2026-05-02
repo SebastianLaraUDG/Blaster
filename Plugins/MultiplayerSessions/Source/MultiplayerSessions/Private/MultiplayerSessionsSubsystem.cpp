@@ -58,6 +58,16 @@ void UMultiplayerSessionsSubsystem::CreateSession(int32 NumPublicConnections, FS
 	LastSessionSettings->bUseLobbiesIfAvailable = true; // Recommendation from a student in the comments of class 22
 	LastSessionSettings->Set(FName("MatchType"), MatchType, EOnlineDataAdvertisementType::ViaOnlineServiceAndPing);
 	LastSessionSettings->BuildUniqueId = 1;
+	
+	
+	if (GEngine && IOnlineSubsystem::Get()->GetSubsystemName() == "STEAM")
+	{
+		GEngine->AddOnScreenDebugMessage(1, 7.f, FColor::Green, FString("Steam subsystem found"));
+	}
+	else if (GEngine)
+	{
+		GEngine->AddOnScreenDebugMessage(1, 7.f, FColor::Red, FString("Steam subsystem NOT found. Make sure Steam is running."));
+	}
 
 	if (const UWorld* World = GetWorld())
 	{

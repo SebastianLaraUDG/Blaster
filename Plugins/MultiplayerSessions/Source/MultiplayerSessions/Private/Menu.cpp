@@ -6,7 +6,7 @@
 #include "MultiplayerSessionsSubsystem.h"
 #include "OnlineSubsystem.h"
 
-void UMenu::MenuSetup(int32 NumberOfPublicConnections, FString TypeOfMatch, FString LobbyPath)
+void UMenu::MenuSetupByPath(FString LobbyPath, int32 NumberOfPublicConnections, FString TypeOfMatch)
 {
 	PathToLobby = FString::Printf(TEXT("%s?listen"), *LobbyPath);
 
@@ -43,6 +43,58 @@ void UMenu::MenuSetup(int32 NumberOfPublicConnections, FString TypeOfMatch, FStr
 		MultiplayerSessionsSubsystem->MultiplayerOnJoinSessionComplete.AddUObject(this, &ThisClass::OnJoinSession);
 		MultiplayerSessionsSubsystem->MultiplayerOnDestroySessionComplete.
 		                              AddDynamic(this, &ThisClass::OnDestroySession);
+		MultiplayerSessionsSubsystem->MultiplayerOnStartSessionComplete.AddDynamic(this, &ThisClass::OnStartSession);
+	}
+}
+
+void UMenu::MenuSetupByLevel(TSoftObjectPtr<UWorld> Level, int32 NumberOfPublicConnections, FString TypeOfMatch)
+{
+	// Make sure Level is valid, otherwise log and return.
+	if (Level.IsNull())
+	{
+		const FString Message = FString::Printf(
+			TEXT("Error: Level soft object ptr is not valid. Make sure the level pin has a valid UWorld asset."
+		"\n Internal error: Level soft object ptr is not valid in %s. Line: %d"), *GetNameSafe(this), __LINE__);
+		UE_LOG(LogLevelStreaming, Error, TEXT("%s"), *Message);
+		GEngine->AddOnScreenDebugMessage(1, 15.f, FColor::Red, *Message);
+		return;
+	}
+	
+	PathToLobby = FString::Printf(TEXT("%s?listen"), *Level.ToSoftObjectPath().GetLongPackageName());
+
+	NumPublicConnections = NumberOfPublicConnections;
+	MatchType = TypeOfMatch;
+
+	AddToViewport();
+	SetVisibility(ESlateVisibility::Visible);
+	SetIsFocusable(true);
+
+	if (UWorld* const World = GetWorld())
+	{
+		if (APlayerController* const PlayerController = World->GetFirstPlayerController())
+		{
+			FInputModeUIOnly InputModeData;
+			// Focus on this widget
+			InputModeData.SetWidgetToFocus(TakeWidget());
+			InputModeData.SetLockMouseToViewportBehavior(EMouseLockMode::DoNotLock);
+			PlayerController->SetInputMode(InputModeData);
+			PlayerController->SetShowMouseCursor(true);
+		}
+	}
+
+	if (UGameInstance* const GameInstance = GetGameInstance())
+	{
+		MultiplayerSessionsSubsystem = GameInstance->GetSubsystem<UMultiplayerSessionsSubsystem>();
+	}
+
+	// Bind callback
+	if (MultiplayerSessionsSubsystem)
+	{
+		MultiplayerSessionsSubsystem->MultiplayerOnCreateSessionComplete.AddDynamic(this, &ThisClass::OnCreateSession);
+		MultiplayerSessionsSubsystem->MultiplayerOnFindSessionsComplete.AddUObject(this, &ThisClass::OnFindSessions);
+		MultiplayerSessionsSubsystem->MultiplayerOnJoinSessionComplete.AddUObject(this, &ThisClass::OnJoinSession);
+		MultiplayerSessionsSubsystem->MultiplayerOnDestroySessionComplete.
+									  AddDynamic(this, &ThisClass::OnDestroySession);
 		MultiplayerSessionsSubsystem->MultiplayerOnStartSessionComplete.AddDynamic(this, &ThisClass::OnStartSession);
 	}
 }

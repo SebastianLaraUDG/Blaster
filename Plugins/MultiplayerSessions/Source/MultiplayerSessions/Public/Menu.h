@@ -19,17 +19,16 @@ class MULTIPLAYERSESSIONS_API UMenu : public UUserWidget
 	GENERATED_BODY()
 
 public:
+	virtual bool Initialize() override;
+	
 	// Set up a UI widget which shows the cursor. Perfect for main menus.
 	UFUNCTION(BlueprintCallable)
-	void MenuSetup(int32 NumberOfPublicConnections = 4, FString TypeOfMatch = FString(TEXT("FreeForAll")), FString LobbyPath = FString(TEXT("/Game/Project/Maps/Lobby")));
-
-	/* TODO: When you're sure it's tested
-	 * Do a MenuSetup by path function and a 
-	 * MenuSetup by soft reference (to World) function.
-	 */
+	void MenuSetupByPath(FString LobbyPath = FString(TEXT("/Game/Project/Maps/Lobby")), int32 NumberOfPublicConnections = 4, FString TypeOfMatch = FString(TEXT("FreeForAll")));
+	// Set up a UI widget which shows the cursor. Perfect for main menus.
+	UFUNCTION(BlueprintCallable)
+	void MenuSetupByLevel(TSoftObjectPtr<UWorld> Level, int32 NumberOfPublicConnections = 4, FString TypeOfMatch = FString(TEXT("FreeForAll")));
 	
 protected:
-	virtual bool Initialize() override;
 	virtual void NativeDestruct() override;
 
 	//
