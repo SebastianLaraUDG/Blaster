@@ -38,6 +38,8 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FMultiplayerOnDestroySessionComplete
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FMultiplayerOnStartSessionComplete, bool, bWasSuccessful);
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FMultiplayerOnOnlineSubsystemNotAvailable);
+
 /**
  * 
  */
@@ -73,6 +75,8 @@ public:
 	FMultiplayerOnJoinSessionComplete MultiplayerOnJoinSessionComplete;
 	FMultiplayerOnDestroySessionComplete MultiplayerOnDestroySessionComplete;
 	FMultiplayerOnStartSessionComplete MultiplayerOnStartSessionComplete;
+	
+	FMultiplayerOnOnlineSubsystemNotAvailable MultiplayerOnOnlineSubsystemNotAvailable;
 
 protected:
 	//
@@ -109,4 +113,6 @@ private:
 	bool bCreateSessionOnDestroy{false};
 	int32 LastNumPublicConnections;
 	FString LastMatchType;
+	
+	bool OnlineSubsystemIsAvailable() const;
 };

@@ -5,6 +5,7 @@
 #include "Components/Button.h"
 #include "MultiplayerSessionsSubsystem.h"
 #include "OnlineSubsystem.h"
+#include "Components/TextBlock.h"
 
 void UMenu::MenuSetupByPath(FString LobbyPath, int32 NumberOfPublicConnections, FString TypeOfMatch)
 {
@@ -35,16 +36,11 @@ void UMenu::MenuSetupByPath(FString LobbyPath, int32 NumberOfPublicConnections, 
 		MultiplayerSessionsSubsystem = GameInstance->GetSubsystem<UMultiplayerSessionsSubsystem>();
 	}
 
-	// Bind callback
-	if (MultiplayerSessionsSubsystem)
+	if (OnlineSubsystemWarningText)
 	{
-		MultiplayerSessionsSubsystem->MultiplayerOnCreateSessionComplete.AddDynamic(this, &ThisClass::OnCreateSession);
-		MultiplayerSessionsSubsystem->MultiplayerOnFindSessionsComplete.AddUObject(this, &ThisClass::OnFindSessions);
-		MultiplayerSessionsSubsystem->MultiplayerOnJoinSessionComplete.AddUObject(this, &ThisClass::OnJoinSession);
-		MultiplayerSessionsSubsystem->MultiplayerOnDestroySessionComplete.
-		                              AddDynamic(this, &ThisClass::OnDestroySession);
-		MultiplayerSessionsSubsystem->MultiplayerOnStartSessionComplete.AddDynamic(this, &ThisClass::OnStartSession);
+		OnlineSubsystemWarningText->SetVisibility(ESlateVisibility::Hidden);
 	}
+	BindMultiplayerSessionsSubsystemCallbacks();
 }
 
 void UMenu::MenuSetupByLevel(TSoftObjectPtr<UWorld> Level, int32 NumberOfPublicConnections, FString TypeOfMatch)
@@ -87,16 +83,11 @@ void UMenu::MenuSetupByLevel(TSoftObjectPtr<UWorld> Level, int32 NumberOfPublicC
 		MultiplayerSessionsSubsystem = GameInstance->GetSubsystem<UMultiplayerSessionsSubsystem>();
 	}
 
-	// Bind callback
-	if (MultiplayerSessionsSubsystem)
+	if (OnlineSubsystemWarningText)
 	{
-		MultiplayerSessionsSubsystem->MultiplayerOnCreateSessionComplete.AddDynamic(this, &ThisClass::OnCreateSession);
-		MultiplayerSessionsSubsystem->MultiplayerOnFindSessionsComplete.AddUObject(this, &ThisClass::OnFindSessions);
-		MultiplayerSessionsSubsystem->MultiplayerOnJoinSessionComplete.AddUObject(this, &ThisClass::OnJoinSession);
-		MultiplayerSessionsSubsystem->MultiplayerOnDestroySessionComplete.
-									  AddDynamic(this, &ThisClass::OnDestroySession);
-		MultiplayerSessionsSubsystem->MultiplayerOnStartSessionComplete.AddDynamic(this, &ThisClass::OnStartSession);
+		OnlineSubsystemWarningText->SetVisibility(ESlateVisibility::Hidden);
 	}
+	BindMultiplayerSessionsSubsystemCallbacks();
 }
 
 
@@ -159,6 +150,19 @@ void UMenu::JoinButtonClicked()
 	}
 }
 
+void UMenu::OnOnlineSubsystemNotAvailable()
+{
+	if (OnlineSubsystemWarningText)
+	{
+		OnlineSubsystemWarningText->SetText(
+			FText::FromString(TEXT("No online subsystem available. Make sure Steam or Epic Games is running."))
+			);
+		OnlineSubsystemWarningText->SetVisibility(ESlateVisibility::Visible);
+	}
+	if (HostButton) HostButton->SetIsEnabled(true);
+	if (JoinButton) JoinButton->SetIsEnabled(true);
+}
+
 void UMenu::MenuTearDown()
 {
 	RemoveFromParent();
@@ -170,6 +174,20 @@ void UMenu::MenuTearDown()
 			PlayerController->SetInputMode(InputModeData);
 			PlayerController->SetShowMouseCursor(false);
 		}
+	}
+}
+
+void UMenu::BindMultiplayerSessionsSubsystemCallbacks()
+{
+	if (MultiplayerSessionsSubsystem)
+	{
+		MultiplayerSessionsSubsystem->MultiplayerOnOnlineSubsystemNotAvailable.AddDynamic(this, &ThisClass::OnOnlineSubsystemNotAvailable);
+		MultiplayerSessionsSubsystem->MultiplayerOnCreateSessionComplete.AddDynamic(this, &ThisClass::OnCreateSession);
+		MultiplayerSessionsSubsystem->MultiplayerOnFindSessionsComplete.AddUObject(this, &ThisClass::OnFindSessions);
+		MultiplayerSessionsSubsystem->MultiplayerOnJoinSessionComplete.AddUObject(this, &ThisClass::OnJoinSession);
+		MultiplayerSessionsSubsystem->MultiplayerOnDestroySessionComplete.
+									  AddDynamic(this, &ThisClass::OnDestroySession);
+		MultiplayerSessionsSubsystem->MultiplayerOnStartSessionComplete.AddDynamic(this, &ThisClass::OnStartSession);
 	}
 }
 

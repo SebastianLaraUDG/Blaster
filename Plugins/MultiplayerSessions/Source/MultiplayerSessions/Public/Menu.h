@@ -8,6 +8,7 @@
 #include "Interfaces/OnlineSessionInterface.h"
 #include "Menu.generated.h"
 
+class UTextBlock;
 class UButton;
 class UMultiplayerSessionsSubsystem;
 /**
@@ -50,15 +51,24 @@ private:
 
 	UPROPERTY(meta = (BindWidget))
 	UButton* JoinButton;
+	
+	// Text for displaying if the online subsystem was not found.
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UTextBlock> OnlineSubsystemWarningText;
 
 	UFUNCTION()
 	void HostButtonClicked();
 
 	UFUNCTION()
 	void JoinButtonClicked();
+	
+	UFUNCTION()
+	void OnOnlineSubsystemNotAvailable();
 
 	// Remove widget and enable gameplay input mode
 	void MenuTearDown();
+	
+	void BindMultiplayerSessionsSubsystemCallbacks();
 
 	// The subsystem designed to handle all online session functionality
 	UPROPERTY()

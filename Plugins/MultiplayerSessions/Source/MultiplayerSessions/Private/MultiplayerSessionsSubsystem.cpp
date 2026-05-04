@@ -27,6 +27,11 @@ UMultiplayerSessionsSubsystem::UMultiplayerSessionsSubsystem() :
 
 void UMultiplayerSessionsSubsystem::CreateSession(int32 NumPublicConnections, FString MatchType)
 {
+	if (!OnlineSubsystemIsAvailable())
+	{
+		return;
+	}
+	
 	if (!IsValidSessionInterface())
 	{
 		return;
@@ -86,6 +91,11 @@ void UMultiplayerSessionsSubsystem::CreateSession(int32 NumPublicConnections, FS
 
 void UMultiplayerSessionsSubsystem::FindSessions(int32 MaxSearchResults)
 {
+	if (!OnlineSubsystemIsAvailable())
+	{
+		return;
+	}
+	
 	if (!IsValidSessionInterface())
 	{
 		return;
@@ -243,4 +253,16 @@ void UMultiplayerSessionsSubsystem::OnDestroySessionComplete(FName SessionName, 
 void UMultiplayerSessionsSubsystem::OnStartSessionComplete(FName SessionName, bool bWasSuccessful)
 {
 	// TODO: Implement?
+}
+
+bool UMultiplayerSessionsSubsystem::OnlineSubsystemIsAvailable() const
+{
+	if (IOnlineSubsystem::Get()->GetSubsystemName() == "STEAM")
+	{
+		return true;
+	}
+	// Add Epic games subsystem case here...
+	
+	MultiplayerOnOnlineSubsystemNotAvailable.Broadcast();
+	return false;
 }
