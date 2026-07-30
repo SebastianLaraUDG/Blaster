@@ -1,0 +1,30 @@
+{
+	"FileVersion": 3,
+	"Version": 1,
+	"VersionName": "1.0",
+	"FriendlyName": "Blueprint Color Picker",
+	"Description": "Native Slate based color picker exposed to Blueprints",
+	"Category": "UI",
+	"CreatedBy": "Rohan Singh",
+	"CreatedByURL": "https://www.linkedin.com/in/rohan-sierra/",
+	"DocsURL": "",
+	"FabURL": "com.epicgames.launcher://ue/Fab/product/1dde9537-7c5f-43cd-8e4c-7abfbbd9126a",
+	"SupportURL": "",
+	"EngineVersion": "5.6.0",
+	"CanContainContent": true,
+	"Installed": true,
+	"Modules": [
+		{
+			"Name": "BlueprintColorPicker",
+			"Type": "Runtime",
+			"LoadingPhase": "Default",
+			"PlatformAllowList": [
+				"Win64",
+				"Mac",
+				"Linux",
+				"IOS",
+				"Android"
+			]
+		}
+	]
+}
