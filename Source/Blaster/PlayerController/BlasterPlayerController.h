@@ -8,6 +8,7 @@
 #include "Blaster/Weapon/WeaponTypes.h"
 #include "BlasterPlayerController.generated.h"
 
+struct FCharacterCustomization;
 class UInputAction;
 class UInputMappingContext;
 class ABlasterHUD;
@@ -37,6 +38,8 @@ public:
 	void SetHUDAnnouncementCountdown(const float CountdownTime); // Same as SetHUDMatchCountdown, but with a different TextBlock. TODO: checks and calculations could be refactorized into a separate function to make cleaner code.
 	void SetHUDSniperScope(const bool bIsAiming);
 	void SetHUDGrenades(const int32 Grenades);
+	// Ammo related info only.
+	void UpdateHUDInfo(EWeaponType WeaponType, const int32 WeaponAmmo, const int32 WeaponCarriedAmmo, const int32 GrenadeAmount);
 	
 	void OnMatchStateSet(const FName& State);
 	
@@ -162,6 +165,9 @@ private:
 	
 	// Avoid code duplication with these functions.
 	ABlasterHUD* ValidateBlasterHUD();
+	
+	UFUNCTION(Server, Reliable)
+	void ServerSetCustomization(const FCharacterCustomization& NewCustomization);
 	
 	bool HUDAndOverlayAreValid() const { return BlasterHUD && BlasterHUD->CharacterOverlay; }
 };

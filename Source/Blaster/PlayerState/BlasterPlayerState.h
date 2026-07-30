@@ -3,9 +3,11 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "Blaster/BlasterTypes/CharacterCustomization.h"
 #include "GameFramework/PlayerState.h"
 #include "BlasterPlayerState.generated.h"
 
+class UBlasterGameInstance;
 class ABlasterPlayerController;
 class ABlasterCharacter;
 
@@ -28,9 +30,17 @@ public:
 	UFUNCTION()
 	virtual void OnRep_Defeats();
 	
+	UFUNCTION()
+	void OnRep_CustomizationData();
+	
 	void AddToScore(const float ScoreAmount);
 	
 	void AddToDefeats(const int32 DefeatsAmount);
+	
+	void SetCustomizationDataFromGameInstance(UBlasterGameInstance* GameInstance);
+	
+	UPROPERTY(ReplicatedUsing = OnRep_CustomizationData, BlueprintReadOnly)
+	FCharacterCustomization CustomizationData;
 	
 private:
 	UPROPERTY()

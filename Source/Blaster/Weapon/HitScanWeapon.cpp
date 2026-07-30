@@ -207,7 +207,8 @@ void AHitScanWeapon::WeaponTraceHit(const FVector& TraceStart, const FVector& Hi
 	const auto World = GetWorld();
 	if (!World) return;
 
-	const FVector End = TraceStart + (HitTarget - TraceStart) * MaxTraceDistance;
+	const FVector Direction = (HitTarget - TraceStart).GetSafeNormal();
+	const FVector End = TraceStart + Direction * MaxTraceDistance;
 	
 	FCollisionQueryParams CollisionParams;
 	CollisionParams.AddIgnoredActor(GetOwner());

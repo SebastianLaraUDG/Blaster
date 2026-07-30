@@ -4,6 +4,7 @@
 #include "BlasterPlayerState.h"
 
 #include "Blaster/Character/BlasterCharacter.h"
+#include "Blaster/GameInstance/BlasterGameInstance.h"
 #include "Blaster/PlayerController/BlasterPlayerController.h"
 #include "Net/UnrealNetwork.h"
 
@@ -17,6 +18,7 @@ void ABlasterPlayerState::GetLifetimeReplicatedProps(TArray<class FLifetimePrope
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 	
 	DOREPLIFETIME(ABlasterPlayerState, Defeats);
+	DOREPLIFETIME(ABlasterPlayerState, CustomizationData);
 }
 
 void ABlasterPlayerState::AddToScore(const float ScoreAmount)
@@ -59,6 +61,20 @@ void ABlasterPlayerState::OnRep_Defeats()
 	{
 		Controller->SetHUDDefeats(Defeats);
 	}
+}
+
+void ABlasterPlayerState::OnRep_CustomizationData()
+{
+	if (const auto BlasterCharacter = Cast<ABlasterCharacter>(GetPawn()))
+	{
+		BlasterCharacter->ApplyCustomization();
+	}
+}
+
+void ABlasterPlayerState::SetCustomizationDataFromGameInstance(UBlasterGameInstance* GameInstance) // TODO: remove if unused.
+{
+	if (!GameInstance) return;
+	CustomizationData = GameInstance->PendingCustomization;
 }
 
 void ABlasterPlayerState::CheckCharacter()

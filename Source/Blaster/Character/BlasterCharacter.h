@@ -11,6 +11,7 @@
 #include "BlasterCharacter.generated.h"
 
 
+struct FCharacterCustomization;
 class ULagCompensationComponent;
 class UCapsuleComponent;
 class UBuffComponent;
@@ -47,6 +48,8 @@ public:
 	virtual void Jump() override;
 	virtual void OnRep_PlayerState() override;
 	virtual void PossessedBy(AController* NewController) override;
+	UFUNCTION(BlueprintCallable)
+	void ApplyCustomization() const;
 	
 	// PlayMontages.
 	void PlayFireMontage(bool bAiming);
@@ -89,12 +92,17 @@ protected:
 	// Hit boxes for server-side rewind.
 	UPROPERTY(EditDefaultsOnly, Category = "Hit Boxes")
 	TArray<FName> HitBoxBoneNames = {
-		"Head",
-		"Neck",
-		"LeftArm", "LeftForeArm", "RightArm", "RightForeArm",
-		"Hips", "Spine" /*Lower spine*/, "Spine1" /* Upper spine*/, 
-		"LeftLeg"/*Lower part*/, "LeftUpLeg" , "LeftFoot", "RightLeg"/* Lower part*/, "RightUpLeg", "RightFoot"
+// Old skeleton bone names (universal/more readable bones):
+// 
+//		"Head",
+//		"Neck",
+//		"LeftArm", "LeftForeArm", "RightArm", "RightForeArm",
+//		"Hips", "Spine" /*Lower spine*/, "Spine1" /* Upper spine*/, 
+//		"LeftLeg"/*Lower part*/, "LeftUpLeg" , "LeftFoot", "RightLeg"/* Lower part*/, "RightUpLeg", "RightFoot"
 		// You can add more bone names, I am using only these since I am not getting paid for developing this game.
+		"head", "neck_01", "upperarm_l", "lowerarm_l", "upperarm_r", "lowerarm_r",
+		"pelvis", "spine_01", "spine_03"/*upper*/,
+		"calf_l", "calf_r", "thigh_l", "thigh_r", "foot_r", "foot_l"
 	};
 	
 	// Gameplay basic movement.

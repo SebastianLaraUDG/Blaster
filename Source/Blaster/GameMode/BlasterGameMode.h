@@ -52,6 +52,7 @@ protected:
 	/** Setup and start a timer when match begins to transition to State Cooldown.*/
 	virtual void HandleMatchHasStarted() override;
 	virtual void OnMatchStateSet() override;
+	virtual void ReturnAllPlayersToMainMenu();
 private:
 	FTimerHandle WarmupStateTimer;
 	FTimerHandle RestartGameTimer;

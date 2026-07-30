@@ -2,6 +2,8 @@
 
 
 #include "BlasterGameMode.h"
+
+#include "MultiplayerSessionsSubsystem.h"
 #include "Blaster/Character/BlasterCharacter.h"
 #include "Blaster/GameState/BlasterGameState.h"
 #include "Blaster/PlayerController/BlasterPlayerController.h"
@@ -89,10 +91,34 @@ void ABlasterGameMode::OnMatchStateSet()
 		 // Lambda 
 		FTimerDelegate TimerCallback = FTimerDelegate::CreateWeakLambda(this,[this]()
 		{
-			UE_LOG(LogGameMode, Display, TEXT("RESTARTING GAME in %f"), CooldownTime)
-			RestartGame();
+			// Old code to restart game. Replaced to take players back to main menu.
+			// UE_LOG(LogGameMode, Display, TEXT("RESTARTING GAME in %f"), CooldownTime)
+			// RestartGame();
+			UE_LOG(LogGameMode, Display, TEXT("RETURNING ALL PLAYERS TO MAIN MENU in %f"), CooldownTime)
+			ReturnAllPlayersToMainMenu();
 		});
 		GetWorldTimerManager().SetTimer(RestartGameTimer, TimerCallback, CooldownTime, false);
+	}
+}
+
+void ABlasterGameMode::ReturnAllPlayersToMainMenu()
+{
+	if (const UGameInstance* GI = GetGameInstance())
+	{
+		if (UMultiplayerSessionsSubsystem* Sessions = GI->GetSubsystem<UMultiplayerSessionsSubsystem>())
+		{
+			Sessions->DestroySession();
+		}
+	}
+	// Kick every connected player back to their own offline main menu.
+	// This tears down the network connection for each of them.
+	for (auto It = GetWorld()->GetPlayerControllerIterator(); It; ++It)
+	{
+		if (APlayerController* PC = It->Get())
+		{
+			PC->ClientReturnToMainMenuWithTextReason(
+				FText::FromString(TEXT("Match ended")));
+		}
 	}
 }
 

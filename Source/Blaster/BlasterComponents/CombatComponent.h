@@ -13,7 +13,6 @@
 class ABlasterHUD;
 class ABlasterPlayerController;
 class AWeapon;
-class ABlasterCharacter;
 class AProjectileGrenade;
 
 /*

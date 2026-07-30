@@ -20,10 +20,14 @@ class BLASTER_API UOverheadWidget : public UUserWidget
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UTextBlock> DisplayText;
 	
-	void SetDisplayText(FString TextToDisplay);
+	void SetDisplayText(const FString& TextToDisplay) const;
 	
 	UFUNCTION(BlueprintCallable)
 	void ShowPlayerNetRole(APawn* InPawn);
+	
+	// Display online player name (i.e. steam username).
+	UFUNCTION(BlueprintCallable)
+	void ShowPlayerName(APawn* InPawn) const;
 	
 	protected:
 	virtual void NativeDestruct() override;

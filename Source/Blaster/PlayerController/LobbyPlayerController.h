@@ -6,6 +6,7 @@
 #include "GameFramework/PlayerController.h"
 #include "LobbyPlayerController.generated.h"
 
+struct FCharacterCustomization;
 class UUserWidget;
 
 /**
@@ -15,6 +16,8 @@ UCLASS()
 class BLASTER_API ALobbyPlayerController : public APlayerController
 {
 	GENERATED_BODY()
+protected:
+	virtual void BeginPlay() override;
 public:
 	
 	UPROPERTY(EditDefaultsOnly)
@@ -30,4 +33,9 @@ public:
 	// Call TryStartMatch from HostLobbyGameMode
 	UFUNCTION(Server, Reliable, BlueprintCallable)
 	void ServerStartMatch();
+	
+private:
+	// TODO: Duplicate this behavior for blaster player controller.
+	UFUNCTION(Server, Reliable)
+	void ServerSetCustomization(const FCharacterCustomization& NewCustomization);
 };

@@ -214,6 +214,19 @@ void AWeapon::Fire(const FVector& HitTarget)
 	SpendRound();
 }
 
+void AWeapon::PlayEmptyMagSound() const
+{
+	// Check there is at least one bullet in magazine, otherwise play SFX and early return.
+
+	if (const APawn* OwnerPawn = Cast<APawn>(GetOwner()))
+	{
+		if (Ammo < 1 && EmptyMagCue)
+		{
+			UGameplayStatics::PlaySound2D(this, EmptyMagCue);
+		}
+	}
+}
+
 void AWeapon::Drop()
 {
 	SetWeaponState(EWeaponState::EWS_Dropped);

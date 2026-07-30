@@ -27,6 +27,7 @@
 #include "Kismet/GameplayStatics.h"
 #include "Sound/SoundCue.h"
 #include "Blaster/PlayerState/BlasterPlayerState.h"
+#include "Blaster/BlasterTypes/CharacterCustomization.h"
 
 
 ABlasterCharacter::ABlasterCharacter()
@@ -321,13 +322,8 @@ void ABlasterCharacter::MulticastGainedTheLead_Implementation()
 	}
 	if (CrownWidgetComponent)
 	{
-		CrownWidgetComponent->SetVisibility(!IsLocallyControlled());
 		// Lead player will not see the icon (only other players).
-		/*if (IsLocallyControlled())
-		{
-			CrownWidgetComponent->SetOwnerNoSee(true);
-		}
-		*/
+		CrownWidgetComponent->SetVisibility(!IsLocallyControlled());
 	}
 }
 
@@ -380,6 +376,17 @@ void ABlasterCharacter::BeginPlay()
 	}
 	// Initialize HUD health values.
 	UpdateHUD();
+	
+	if (HasAuthority())
+	{
+		// I don't know why but waiting until next tick fixes the issue of server not applying
+		// custom colors whether it's at start of match or when killing and respawning a BlasterCharacter. 
+		GetWorldTimerManager().SetTimerForNextTick(FTimerDelegate::CreateLambda([this]
+		{
+			UE_LOG(LogTemp, Warning, TEXT("called timer after tick to check for valid game state %s"), GetPlayerState()? TEXT("VALID") : TEXT("NOT VALID"))
+			ApplyCustomization();
+		}));
+	}
 }
 
 void ABlasterCharacter::Move(const FInputActionValue& Value)
@@ -615,6 +622,11 @@ void ABlasterCharacter::OnRep_PlayerState()
 	{
 		MulticastGainedTheLead();
 	}
+	
+	if (const auto PS = GetPlayerState<ABlasterPlayerState>())
+	{
+		ApplyCustomization();
+	}
 }
 
 void ABlasterCharacter::PossessedBy(AController* NewController)
@@ -625,6 +637,35 @@ void ABlasterCharacter::PossessedBy(AController* NewController)
 	if (BlasterGameState && BlasterGameState->TopScoringPlayers.Contains(GetPlayerState()))
 	{
 		MulticastGainedTheLead();
+	}
+}
+
+void ABlasterCharacter::ApplyCustomization() const
+{
+	const ABlasterPlayerState* BlasterPlayerState = GetPlayerState<ABlasterPlayerState>();
+	if (!BlasterPlayerState) return;
+	
+	if (!GetMesh()) return;
+	
+	const auto Customization = BlasterPlayerState->CustomizationData;
+	// Material 0 - Armor
+	if (UMaterialInstanceDynamic* ArmorMat = GetMesh()->CreateAndSetMaterialInstanceDynamic(0))
+	{
+		ArmorMat->SetVectorParameterValue(FName("Color1"), Customization.Mat0_Light);
+		ArmorMat->SetVectorParameterValue(FName("Color2"), Customization.Mat0_Major);
+		ArmorMat->SetVectorParameterValue(FName("Color3"), Customization.Mat0_Minor);
+		ArmorMat->SetScalarParameterValue(FName("EmissiveMultiplyer"), Customization.Mat0_EmissiveMultiplier);
+		ArmorMat->SetScalarParameterValue(FName("emissivePower"), Customization.Mat0_EmissivePower);
+	}
+
+	// Material 1 - Suit
+	if (UMaterialInstanceDynamic* InnerSuitMaterial = GetMesh()->CreateAndSetMaterialInstanceDynamic(1))
+	{
+		InnerSuitMaterial->SetVectorParameterValue(FName("Color1"), Customization.Mat1_Light);
+		InnerSuitMaterial->SetVectorParameterValue(FName("Color2"), Customization.Mat1_Major);
+		InnerSuitMaterial->SetVectorParameterValue(FName("Color3"), Customization.Mat1_Minor);
+		InnerSuitMaterial->SetScalarParameterValue(FName("EmissiveMultiplyer"), Customization.Mat1_EmissiveMultiplier);
+		InnerSuitMaterial->SetScalarParameterValue(FName("emissivePower"), Customization.Mat1_EmissivePower);
 	}
 }
 

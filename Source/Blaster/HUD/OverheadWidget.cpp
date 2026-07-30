@@ -6,7 +6,7 @@
 #include "Components/TextBlock.h"
 #include "GameFramework/PlayerState.h"
 
-void UOverheadWidget::SetDisplayText(FString TextToDisplay)
+void UOverheadWidget::SetDisplayText(const FString& TextToDisplay) const
 {
 	if (DisplayText)
 	{
@@ -27,7 +27,7 @@ void UOverheadWidget::ShowPlayerNetRole(APawn* InPawn)
 	case ROLE_None:					Role = FString(("None"));					break;
 	}
 
-	// Displaye local role and Player State Player Name.
+	// Display local role and Player State Player Name.
 	if (UWorld* const World = GetWorld())
 	{
 		FString StatePlayerName = FString("");
@@ -36,10 +36,21 @@ void UOverheadWidget::ShowPlayerNetRole(APawn* InPawn)
 		{
 			StatePlayerName = PlayerState->GetPlayerName();
 		}
-		
-		FString LocalRoleString = FString::Printf(TEXT("Local Role: %s.Player State Name: %s"), *Role, *StatePlayerName);
+
+		const FString LocalRoleString = FString::Printf(TEXT("Local Role: %s.Player State Name: %s"), *Role, *StatePlayerName);
 		SetDisplayText(LocalRoleString);
 	}
+}
+
+void UOverheadWidget::ShowPlayerName(APawn* InPawn) const
+{
+	FString StatePlayerName = FString("");
+		
+	if (const APlayerState* const PlayerState = InPawn->GetPlayerState())
+	{
+		StatePlayerName = PlayerState->GetPlayerName();
+	}
+	SetDisplayText(StatePlayerName);
 }
 
 void UOverheadWidget::NativeDestruct()

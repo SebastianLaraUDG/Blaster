@@ -60,6 +60,7 @@ public:
 	void ShowPickupWidget(bool bShowWidget);
 	/* Play Fire animation and spawn casings. */
 	virtual void Fire(const FVector& HitTarget);
+	void PlayEmptyMagSound() const;
 	
 	/** Mark as dropped and enable physics, gravity and collision. **/
 	void Drop();
@@ -214,6 +215,9 @@ private:
 	
 	UPROPERTY(EditDefaultsOnly)
 	TObjectPtr<USoundCue> FiringCue;
+	
+	UPROPERTY(EditDefaultsOnly)
+	TObjectPtr<USoundCue> EmptyMagCue;
 	
 	/* Ammo. */
 	

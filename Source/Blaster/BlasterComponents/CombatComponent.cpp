@@ -72,6 +72,19 @@ void UCombatComponent::BeginPlay()
 	{
 		SpawnDefaultWeapon();
 	}
+	// Initialize ammo and grenades HUD.
+	if (const auto World = GetWorld())
+	{
+		World->GetTimerManager().SetTimerForNextTick(FTimerDelegate::CreateLambda([this]
+		{
+			Controller = Controller ? Controller.Get() : Cast<ABlasterPlayerController>(Character->Controller);
+			const AWeapon* Weapon = Character->GetEquippedWeapon();
+			if (Character->IsLocallyControlled() && Controller && Weapon)
+			{
+				Controller->UpdateHUDInfo(Weapon->GetWeaponType(), Weapon->GetAmmo(), CarriedAmmo, Grenades);
+			}
+		}));
+	}
 }
 
 void UCombatComponent::SetSpeeds(const float InBaseSpeed, const float InCrouchSpeed)
@@ -219,7 +232,14 @@ void UCombatComponent::PickupAmmo(EWeaponType WeaponType, int32 AmmoAmount)
 
 void UCombatComponent::Fire()
 {
-	if (!CanFire()) return;
+	if (!CanFire())
+	{
+		if (EquippedWeapon)
+		{
+			EquippedWeapon->PlayEmptyMagSound();
+		}
+		return;
+	}
 
 	bCanFire = false;
 

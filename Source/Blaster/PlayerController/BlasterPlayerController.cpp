@@ -8,6 +8,7 @@
 #include "EnhancedInputSubsystems.h"
 #include "Blaster/BlasterComponents/CombatComponent.h"
 #include "Blaster/Character/BlasterCharacter.h"
+#include "Blaster/GameInstance/BlasterGameInstance.h"
 #include "Blaster/GameMode/BlasterGameMode.h"
 #include "Blaster/GameState/BlasterGameState.h"
 #include "Blaster/HUD/Announcement.h"
@@ -31,7 +32,12 @@ void ABlasterPlayerController::BeginPlay()
 	
 	ValidateBlasterHUD();
 
-	ServerCheckMatchState();
+	GetWorldTimerManager().SetTimerForNextTick(FTimerDelegate::CreateLambda(
+		[this]()
+		{
+			ServerCheckMatchState();
+		}));
+	// ServerCheckMatchState();
 
 	// Start timer to check server-client time sync.
 	// Update time HUD and check time sync. 
@@ -40,6 +46,28 @@ void ABlasterPlayerController::BeginPlay()
 	
 	// Start checking ping after 1 second.
 	GetWorldTimerManager().SetTimer(CheckPingTimer, this, &ThisClass::CheckPing, CheckPingFrequency, true, 1);
+	
+	if (HasAuthority())
+	{
+		if (ABlasterPlayerState* PS = GetPlayerState<ABlasterPlayerState>())
+		{
+			if (UBlasterGameInstance* BlasterGameInstance = GetGameInstance<UBlasterGameInstance>())
+			{
+				PS->SetCustomizationDataFromGameInstance(BlasterGameInstance);
+			}
+		}
+	}
+
+	if (IsLocalController())
+	{
+		const FInputModeGameOnly InputModeGameOnly;
+		SetInputMode(InputModeGameOnly);
+
+		if (const UBlasterGameInstance* GameInstance = GetGameInstance<UBlasterGameInstance>())
+		{
+			ServerSetCustomization(GameInstance->PendingCustomization);
+		}
+	}
 }
 
 void ABlasterPlayerController::SetupInputComponent()
@@ -326,6 +354,15 @@ void ABlasterPlayerController::SetHUDGrenades(const int32 Grenades)
 	}
 }
 
+void ABlasterPlayerController::UpdateHUDInfo(EWeaponType WeaponType, const int32 WeaponAmmo, const int32 WeaponCarriedAmmo, const int32 GrenadeAmount)
+{
+	ValidateBlasterHUD();
+	SetHUDEquippedWeaponName(WeaponType);
+	SetHUDWeaponAmmo(WeaponAmmo);
+	SetHUDWeaponCarriedAmmo(WeaponCarriedAmmo);
+	SetHUDGrenades(GrenadeAmount);
+}
+
 void ABlasterPlayerController::SetHUDTime()
 {
 	float TimeLeft = 0.f;
@@ -596,11 +633,7 @@ void ABlasterPlayerController::HandleCooldown()
 }
 
 void ABlasterPlayerController::TogglePauseMenu()
-{
-	
-	UE_LOG(LogPlayerController, Display, TEXT("IF YOU ARE READING THIS, INPUT IS WORKING PROPERLY. Is LocalController %d. BlasterHUD: %d."
-										   "BlasterHud->PauseMenu: %d"),IsLocalController(),BlasterHUD? 1 :0, BlasterHUD->PauseMenu ? 1 : 0)
-	
+{	
 	if (!IsLocalController()) return; // Pause menu only on local player.
 	
 	if (auto GameState = GetWorld()->GetGameState<AGameState>())
@@ -782,4 +815,16 @@ ABlasterHUD* ABlasterPlayerController::ValidateBlasterHUD()
 	}
 	return BlasterHUD;
 	// return BlasterHUD = BlasterHUD ? BlasterHUD.Get() : Cast<ABlasterHUD>(GetHUD());
+}
+
+void ABlasterPlayerController::ServerSetCustomization_Implementation(const FCharacterCustomization& NewCustomization)
+{
+	if (ABlasterPlayerState* PS = GetPlayerState<ABlasterPlayerState>())
+	{
+		PS->CustomizationData = NewCustomization;
+		if (const auto BlasterCharacter = Cast<ABlasterCharacter>(PS->GetPawn()))
+		{
+			BlasterCharacter->ApplyCustomization();
+		}
+	}
 }

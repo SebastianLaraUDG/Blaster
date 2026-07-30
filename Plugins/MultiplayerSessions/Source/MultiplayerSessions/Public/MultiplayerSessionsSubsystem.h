@@ -115,4 +115,7 @@ private:
 	FString LastMatchType;
 	
 	bool OnlineSubsystemIsAvailable() const;
+	
+public:
+	bool IsOnlineSubsystemAvailable() const { return OnlineSubsystemIsAvailable(); }
 };
