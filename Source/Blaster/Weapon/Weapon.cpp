@@ -320,7 +320,7 @@ void AWeapon::OnEquippedSecondary()
 		WeaponMesh->SetCollisionResponseToAllChannels(ECR_Ignore);
 	}
 	EnableCustomDepth(true);
-	WeaponMesh->SetCustomDepthStencilValue(CUSTOM_DEPTH_TAN); // Secondary weapon color will be tan.
+	WeaponMesh->SetCustomDepthStencilValue(CUSTOM_DEPTH_YELLOW); // Secondary weapon color will be tan.
 	WeaponMesh->MarkRenderStateDirty();
 }
 

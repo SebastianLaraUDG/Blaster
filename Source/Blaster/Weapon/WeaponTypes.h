@@ -4,6 +4,9 @@
 #define CUSTOM_DEPTH_BLUE 251
 #define CUSTOM_DEPTH_TAN 252
 
+// New defines because this is a last-minute change of colors in this project.
+#define CUSTOM_DEPTH_YELLOW 252
+
 UENUM(BlueprintType)
 enum class EWeaponType : uint8
 {
