@@ -29,8 +29,9 @@ APickup::APickup()
 	Mesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Pickup Mesh"));
 	Mesh->SetupAttachment(SphereComponent);
 	Mesh->SetCollisionResponseToAllChannels(ECR_Ignore);
-	Mesh->SetRenderCustomDepth(true);
 	Mesh->SetCustomDepthStencilValue(250);
+	Mesh->MarkRenderStateDirty();
+	Mesh->SetRenderCustomDepth(true);
 	
 	bReplicates = true;
 	
